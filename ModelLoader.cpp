@@ -16,11 +16,12 @@ void ModelLoader::initModelData()
     mModelData.normals.clear();
     mModelData.indices.clear();
     mModelData.texcoord.clear();
+    mModelData.textures.clear();
     vector<glm::vec3>().swap(mModelData.vertices);
     vector<glm::vec3>().swap(mModelData.normals);
-    //vector<GLTriangle>().swap(mModelData.indices);
     vector<uint32_t>().swap(mModelData.indices);
     vector<glm::vec2>().swap(mModelData.texcoord);
+    map<TEXTURE_TYPE, GLuint>().swap(mModelData.textures);
     for (int i = 0; i < NUM_VBO_ID_TYPE; i++) {
         glDeleteBuffers(i, &mModelData.vboId[i]);
         mModelData.vboId[i] = 0;
@@ -28,9 +29,7 @@ void ModelLoader::initModelData()
 
 }
 QStringList ModelLoader::getTextureFilePath(string path)
-{
-    //string basePath = getBasePath(path);
-    qDebug("[%s|%d] Texture Base Path : %s", __func__, __LINE__, path.c_str());
+{    
     QStringList textureFilePath;
     QDir directoryPath(path.c_str());
     if (directoryPath.exists()) {
@@ -41,7 +40,6 @@ QStringList ModelLoader::getTextureFilePath(string path)
         directoryPath.setNameFilters(filter);
         QFileInfoList fileList = directoryPath.entryInfoList();
         for (int i = 0; i < fileList.size(); i++) {
-            qDebug("[%s|%d] %d. Texture Path : %s", __func__, __LINE__, i, fileList[i].absoluteFilePath().toStdString().c_str());
             textureFilePath << fileList[i].absoluteFilePath();
         }
     }
@@ -141,7 +139,7 @@ GLuint ModelLoader::getVboId(int32_t type, ModelData *modelData, GLuint attribut
         break;
     case VBO_ID_TYPE_NORMAL :
         glBindBuffer(GL_ARRAY_BUFFER, vboId);
-        glBufferData(GL_ARRAY_BUFFER, modelData->normals.size() * sizeof(modelData->normals[0]), &modelData->normals[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, modelData->normals.size() * sizeof(glm::vec3), &modelData->normals[0], GL_STATIC_DRAW);
         glVertexAttribPointer(attribute, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
         glEnableVertexAttribArray(attribute);
         glBindBuffer(GL_ARRAY_BUFFER,0);
@@ -218,5 +216,6 @@ ModelData* ModelLoader::loadModel(string path)
         loadMaterialTexture(textureFileList);
         qDebug("[%s|%d] : texture size = %d", __func__, __LINE__, mModelData.textures.size());
     }
+
     return &mModelData;
 }

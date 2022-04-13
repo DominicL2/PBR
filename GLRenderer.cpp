@@ -21,17 +21,13 @@ GLRenderer::GLRenderer()
         mSpaceInfo.far.leftBottom   = glm::vec3(-GL_SPACE_DEFUALT_DISTANCE_1KM, -GL_SPACE_DEFUALT_DISTANCE_1KM, GL_SPACE_DEFUALT_DISTANCE_1KM);
         mSpaceInfo.far.rightBottom  = glm::vec3(GL_SPACE_DEFUALT_DISTANCE_1KM, -GL_SPACE_DEFUALT_DISTANCE_1KM, GL_SPACE_DEFUALT_DISTANCE_1KM);
 
-        mSpaceInfo.lightSource = glm::vec3(GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_X,
-                                           GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_Y,
-                                           GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_Z);
-
-
         mSpaceInfo.fov = 100.f;
     }
 
     mModelData = mModelLoader.loadModel("/home/dmlee/3d_models/planet/planet_2_obj_.obj");
 
     mModelData->vboId[VBO_ID_TYPE_VERTEX] =  mModelLoader.getVboId(VBO_ID_TYPE_VERTEX, mModelData, mContext.attribute[DEFAULT_SHADER_ATTR_POSTION]);
+    mModelData->vboId[VBO_ID_TYPE_NORMAL] =  mModelLoader.getVboId(VBO_ID_TYPE_NORMAL, mModelData, mContext.attribute[DEFAULT_SHADER_ATTR_NORMAL]);
     mModelData->vboId[VBO_ID_TYPE_TEXCOORD] =  mModelLoader.getVboId(VBO_ID_TYPE_TEXCOORD, mModelData, mContext.attribute[DEFAULT_SHADER_ATTR_TEXCOORD]);
     mModelData->vboId[VBO_ID_TYPE_INDEX] =  mModelLoader.getVboId(VBO_ID_TYPE_INDEX, mModelData);
 
@@ -39,6 +35,22 @@ GLRenderer::GLRenderer()
     mSpaceInfo.viewPoint.x = 0;
     mSpaceInfo.viewPoint.y = mModelData->size.max.y * 1.5;
     mSpaceInfo.viewPoint.z = mModelData->size.max.z * 1.1;
+    mSpaceInfo.lightSource = glm::vec3(mSpaceInfo.viewPoint.x - 1000, mSpaceInfo.viewPoint.y + 600, mSpaceInfo.viewPoint.z + 400);
+
+    //glm::vec3 normalSurface = glm::normalize(mModelData->size.max);
+    glm::vec3 normalLight = glm::normalize(mSpaceInfo.lightSource - glm::vec3(0.0, 0.0, 0.0));
+    glm::vec3 normalView = glm::normalize(mSpaceInfo.viewPoint - glm::vec3(0.0, 0.0, 0.0));
+
+
+    qDebug("Light Pos : %f %f %f", mSpaceInfo.lightSource.x, mSpaceInfo.lightSource.y, mSpaceInfo.lightSource.z);
+    qDebug("View Pos : %f %f %f", mSpaceInfo.viewPoint.x, mSpaceInfo.viewPoint.y, mSpaceInfo.viewPoint.z);
+    //qDebug("Surface : %f %f %f", mModelData->size.max.x, mModelData->size.max.y, mModelData->size.max.z);
+
+    //qDebug("Normalize Surface : %f %f %f", glm::normalize(mModelData->size.max).x, glm::normalize(mModelData->size.max).y, glm::normalize(mModelData->size.max).z);
+    qDebug("Normalize Light : %f %f %f", normalLight.x, normalLight.y, normalLight.z);
+    qDebug("Normalize View : %f %f %f", normalView.x, normalView.y, normalView.z);
+
+
 }
 
 int32_t GLRenderer::init()
@@ -117,6 +129,13 @@ int32_t GLRenderer::registerAttribute(SHADER_TYPE type)
             break;
         }
 
+        attributeId = glGetAttribLocation(mContext.program, "a_normal");
+        if (attributeId >= 0) {
+            mContext.attribute.push_back(attributeId);
+        } else {
+            break;
+        }
+
         attributeId = glGetAttribLocation(mContext.program, "a_texcoord");
         if (attributeId >= 0) {
             mContext.attribute.push_back(attributeId);
@@ -132,7 +151,7 @@ int32_t GLRenderer::registerAttribute(SHADER_TYPE type)
         break;
     }
 
-    qDebug("[%s] : %d", __func__, ret);
+    qDebug("[%s] : %s", __func__, ret == GL_RENDERER_SUCCESS ? "true" : "false");
     return ret;
 }
 
@@ -150,14 +169,48 @@ int32_t GLRenderer::registerUniform(SHADER_TYPE type)
         } else {
             break;
         }
-#if 0
-        uniformId = glGetUniformLocation(mContext.program, "u_normal");
+
+        uniformId = glGetUniformLocation(mContext.program, "u_mv");
         if (uniformId >= 0) {
             mContext.uniform.push_back(uniformId);
         } else {
             break;
         }
-#endif
+
+        uniformId = glGetUniformLocation(mContext.program, "u_lightPos");
+        if (uniformId >= 0) {
+            mContext.uniform.push_back(uniformId);
+        } else {
+            break;
+        }
+
+        uniformId = glGetUniformLocation(mContext.program, "u_viewPos");
+        if (uniformId >= 0) {
+            mContext.uniform.push_back(uniformId);
+        } else {
+            break;
+        }
+
+        uniformId = glGetUniformLocation(mContext.program, "ambientW");
+        if (uniformId >= 0) {
+            mContext.uniform.push_back(uniformId);
+        } else {
+            break;
+        }
+
+        uniformId = glGetUniformLocation(mContext.program, "diffuseW");
+        if (uniformId >= 0) {
+            mContext.uniform.push_back(uniformId);
+        } else {
+            break;
+        }
+
+        uniformId = glGetUniformLocation(mContext.program, "specularW");
+        if (uniformId >= 0) {
+            mContext.uniform.push_back(uniformId);
+        } else {
+            break;
+        }
         ret = GL_RENDERER_SUCCESS;
         break;
     case SHADER_TYPE_BRDF :
@@ -165,7 +218,7 @@ int32_t GLRenderer::registerUniform(SHADER_TYPE type)
     default:
         break;
     }
-    qDebug("[%s] : %d", __func__, ret);
+    qDebug("[%s] : %s", __func__, ret == GL_RENDERER_SUCCESS ? "true" : "false");
     return ret;
 }
 void GLRenderer::checkShaderError(GLuint shader, GLuint flag, bool isProgram, const string &errMsg) {
@@ -184,7 +237,7 @@ void GLRenderer::checkShaderError(GLuint shader, GLuint flag, bool isProgram, co
         } else {
             glGetShaderInfoLog(shader, sizeof(error), NULL, error);
         }
-        qDebug("%s : %s", errMsg.data(), error);
+        qDebug("[%s] : %s", errMsg.data(), error);
         glDeleteShader(shader);
     }
 }
@@ -220,15 +273,18 @@ int32_t GLRenderer::createContext()
     } else {}
     switch (mType) {
     case SHADER_TYPE_DEFAULT :
-        mContext.shader[GLES_SHADER_TYPE_VERTEX]    = registerShader(VERTEX_SHADER_DEFAULT_STR, GL_VERTEX_SHADER);
-        mContext.shader[GLES_SHADER_TYPE_FRAGMENT]  = registerShader(FRAGMENT_SHADER_DEFAULT_STR, GL_FRAGMENT_SHADER);
+        mContext.shader[GLES_SHADER_TYPE_VERTEX]    = registerShader(VERTEX_SHADER_PHONG_STR, GL_VERTEX_SHADER);
+
+        mContext.shader[GLES_SHADER_TYPE_FRAGMENT]  = registerShader(FRAGMENT_SHADER_PHONG_STR, GL_FRAGMENT_SHADER);
         qDebug("Program(%d)", mContext.program);
         qDebug("Shader V(%d) F(%d)", mContext.shader[GLES_SHADER_TYPE_VERTEX], mContext.shader[GLES_SHADER_TYPE_FRAGMENT]);
         if (connectShader2Program() == GL_RENDERER_FAIL) {
             break;
         } else {}
-        if (registerAttribute(SHADER_TYPE_DEFAULT) == GL_RENDERER_SUCCESS && registerUniform(SHADER_TYPE_DEFAULT) == GL_RENDERER_SUCCESS) {
-            ret = GL_RENDERER_SUCCESS;
+        if (registerAttribute(SHADER_TYPE_DEFAULT) == GL_RENDERER_SUCCESS) {
+            if (registerUniform(SHADER_TYPE_DEFAULT) == GL_RENDERER_SUCCESS) {
+                ret = GL_RENDERER_SUCCESS;
+            } else {}
         } else {
             init();
         }
@@ -246,6 +302,7 @@ void GLRenderer::paint()
 
     glViewport(0, 0, mViewPort.width(), mViewPort.height());
     glm::mat4 mvpMatrix         = glm::mat4(1.0f);
+    glm::mat4 mvMatrix          = glm::mat4(1.0f);
     glm::mat4 modelMatrix       = glm::mat4(1.0f);
     glm::mat4 viewMatrix        = glm::mat4(1.0f);
     glm::mat4 projectionMatrix  = glm::mat4(1.0f);
@@ -256,17 +313,31 @@ void GLRenderer::paint()
                                                              0), GLSpace::getUpVector());
     //modelMatrix = glm::scale(modelMatrix, glm::vec3(50.0 / mModelData->size.length.x , 50.0 / mModelData->size.length.y, 50.0 / mModelData->size.length.z));
     modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0, 1.0, 1.0));
-    mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
     glClearColor(0.0, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
+    mvMatrix = viewMatrix * modelMatrix;
 
     // Upate Uniform
     glUseProgram(mContext.program);
     glUniformMatrix4fv(mContext.uniform[DEFAULT_SHADER_UNIFORM_MVP], 1, GL_FALSE, (const float *)&mvpMatrix[0][0]);
+    glUniformMatrix4fv(mContext.uniform[DEFAULT_SHADER_UNIFORM_MV], 1, GL_FALSE, (const float *)&mvMatrix[0][0]);
+
+    glUniform3f(mContext.uniform[DEFAULT_SHADER_UNIFORM_LIGHT_POS], mSpaceInfo.lightSource.x, mSpaceInfo.lightSource.y, mSpaceInfo.lightSource.z);
+    glUniform3f(mContext.uniform[DEFAULT_SHADER_UNIFORM_VIEW_POS], mSpaceInfo.viewPoint.x, mSpaceInfo.viewPoint.y, mSpaceInfo.viewPoint.z);
+
+    glUniform1f(mContext.uniform[DEFAULT_SHADER_UNIFORM_AMBIENT], 0.38);
+    glUniform1f(mContext.uniform[DEFAULT_SHADER_UNIFORM_DIFFUSE], 0.54);
+    glUniform1f(mContext.uniform[DEFAULT_SHADER_UNIFORM_SPECULAR], 0.6);
 
     glBindBuffer(GL_ARRAY_BUFFER, mModelData->vboId[VBO_ID_TYPE_VERTEX]);
     glVertexAttribPointer(mContext.attribute[DEFAULT_SHADER_ATTR_POSTION], 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
     glEnableVertexAttribArray(mContext.attribute[DEFAULT_SHADER_ATTR_POSTION]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, mModelData->vboId[VBO_ID_TYPE_NORMAL]);
+    glVertexAttribPointer(mContext.attribute[DEFAULT_SHADER_ATTR_NORMAL], 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(mContext.attribute[DEFAULT_SHADER_ATTR_NORMAL]);
 
     glBindBuffer(GL_ARRAY_BUFFER, mModelData->vboId[VBO_ID_TYPE_TEXCOORD]);
     glVertexAttribPointer(mContext.attribute[DEFAULT_SHADER_ATTR_TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void*)0);
