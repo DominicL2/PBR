@@ -7,7 +7,7 @@
 #include <GLES2/gl2.h>
 #include <string>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <QStringList>
 
 #define MODEL_LOADER_SUCCESS   (1)
@@ -59,28 +59,27 @@ typedef struct GL_TRIANGLE{
     }
 } GLTriangle;
 
-typedef struct MODEL_DATA{
+typedef struct ModelData {
     vector<glm::vec3> vertices;
     vector<glm::vec3> normals;
     vector<uint32_t> indices;
     vector<glm::vec2> texcoord;
-    map<TEXTURE_TYPE, GLuint>  textures;
+    unordered_map<aiTextureType, vector<GLuint>>  textures;
     GLuint vboId[NUM_VBO_ID_TYPE];
     ModelSize size;
-    MODEL_DATA() {
+    ModelData() {
         vertices.clear();
         normals.clear();
         indices.clear();
         texcoord.clear();
         textures.clear();
-        textures.clear();
         vector<glm::vec3>().swap(vertices);
         vector<glm::vec3>().swap(normals);
         vector<uint32_t>().swap(indices);
         vector<glm::vec2>().swap(texcoord);
-        map<TEXTURE_TYPE, GLuint>().swap(textures);
+        unordered_map<aiTextureType, vector<GLuint>>().swap(textures);
     }
-} ModelData;
+} MODEL_DATA;
 
 class ModelLoader
 {
@@ -88,20 +87,23 @@ public:
     ModelLoader();
 
     /// Load graphic model data using assimp
-    ModelData* loadModel(string path);
-    /// set vbo
-    GLuint getVboId(int32_t type, ModelData *modelData, GLuint attribute  = 0U);
+    vector<ModelData>* loadModel(string path);
+
+    void createVBO(int32_t index);
+    GLuint getVboId(int32_t type, ModelData *modelData);
 
 private :
-    ModelData mModelData;
-
+    vector<ModelData> mModelList;
+    string            mDirectoryPath;
     /// Intialize graphic model data
     void initModelData();
 
     /// Load Texture
     QStringList getTextureFilePath(string path);
-    void loadMaterialTexture(QStringList paths);
-    TEXTURE_TYPE getTextureTypeUsingFileName(string name);
+    GLuint getTextureId(aiString path);
+    void loadTexture(aiMaterial *material, vector<GLuint> *textureId, aiTextureType type);
+    ModelData parseModel(const aiScene *scene, aiMesh* mesh);
+    aiTextureType getTextureTypeUsingFileName(string name);
     string getBasePath(string fullPath);
 };
 

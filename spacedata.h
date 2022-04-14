@@ -3,7 +3,7 @@
 
 #include <glm/glm.hpp>
 
-/// Default distance unit is "cm"
+/// default distance unit is "cm"
 ///
 #define GL_SPACE_DEFUALT_DISTANCE_1KM (1000 * 100)
 

@@ -51,11 +51,13 @@ private :
     int32_t registerUniform(SHADER_TYPE type);
     int32_t createContext();
     void checkShaderError(GLuint shader, GLuint flag, bool isProgram, const string &errMsg);
+    void draw(const ModelData *modelData);
+
     bool mLoadded;
 
     SHADER_TYPE         mType;
     ModelLoader         mModelLoader;
-    ModelData           *mModelData;
+    vector<ModelData>  *mModelList;
     GLRendererContext   mContext;
     GLSpace::SpaceInfo  mSpaceInfo;
     QSize               mViewPort;
