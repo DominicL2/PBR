@@ -240,7 +240,6 @@ vector<ModelData>* ModelLoader::loadModel(string path)
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path,
                                               aiProcess_Triangulate |
-                                             aiProcess_SortByPType |
                                               aiProcess_FlipUVs);
 
     const aiNode *node = scene->mRootNode;

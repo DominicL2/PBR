@@ -11,42 +11,19 @@ GLRenderer::GLRenderer()
         qDebug("[%s|%d] : Fail to create GL context", __func__, __LINE__);
     } else {
         qDebug("[%s][%s:%d]", __FILE__, __func__, __LINE__);
-        mSpaceInfo.near.leftTop     = glm::vec3(-GL_SPACE_DEFUALT_DISTANCE_1KM, GL_SPACE_DEFUALT_DISTANCE_1KM, -GL_SPACE_DEFUALT_DISTANCE_1KM);
-        mSpaceInfo.near.rightTop    = glm::vec3(GL_SPACE_DEFUALT_DISTANCE_1KM, GL_SPACE_DEFUALT_DISTANCE_1KM, -GL_SPACE_DEFUALT_DISTANCE_1KM);
-        mSpaceInfo.near.leftBottom  = glm::vec3(-GL_SPACE_DEFUALT_DISTANCE_1KM, -GL_SPACE_DEFUALT_DISTANCE_1KM, -GL_SPACE_DEFUALT_DISTANCE_1KM);
-        mSpaceInfo.near.rightBottom = glm::vec3(GL_SPACE_DEFUALT_DISTANCE_1KM, -GL_SPACE_DEFUALT_DISTANCE_1KM, -GL_SPACE_DEFUALT_DISTANCE_1KM);
-
-        mSpaceInfo.far.leftTop      = glm::vec3(-GL_SPACE_DEFUALT_DISTANCE_1KM, GL_SPACE_DEFUALT_DISTANCE_1KM, GL_SPACE_DEFUALT_DISTANCE_1KM);
-        mSpaceInfo.far.rightTop     = glm::vec3(GL_SPACE_DEFUALT_DISTANCE_1KM, GL_SPACE_DEFUALT_DISTANCE_1KM, GL_SPACE_DEFUALT_DISTANCE_1KM);
-        mSpaceInfo.far.leftBottom   = glm::vec3(-GL_SPACE_DEFUALT_DISTANCE_1KM, -GL_SPACE_DEFUALT_DISTANCE_1KM, GL_SPACE_DEFUALT_DISTANCE_1KM);
-        mSpaceInfo.far.rightBottom  = glm::vec3(GL_SPACE_DEFUALT_DISTANCE_1KM, -GL_SPACE_DEFUALT_DISTANCE_1KM, GL_SPACE_DEFUALT_DISTANCE_1KM);
-
         mSpaceInfo.fov = 100.f;
     }
 
     mModelList = mModelLoader.loadModel("/home/dmlee/3d_models/planet/planet_2_obj_.obj");
 
-    mSpaceInfo.viewPoint.x = 0;
-    mSpaceInfo.viewPoint.y = 27 * 1.5;
-    mSpaceInfo.viewPoint.z = 27 * 1.1;
-    mSpaceInfo.lightSource = glm::vec3(mSpaceInfo.viewPoint.x - 1000, mSpaceInfo.viewPoint.y + 600, mSpaceInfo.viewPoint.z + 400);
-
-    //glm::vec3 normalSurface = glm::normalize(mModelData->size.max);
-    glm::vec3 normalLight = glm::normalize(mSpaceInfo.lightSource - glm::vec3(0.0, 0.0, 0.0));
-    glm::vec3 normalView = glm::normalize(mSpaceInfo.viewPoint - glm::vec3(0.0, 0.0, 0.0));
-
-
-    qDebug("Light Pos : %f %f %f", mSpaceInfo.lightSource.x, mSpaceInfo.lightSource.y, mSpaceInfo.lightSource.z);
-    qDebug("View Pos : %f %f %f", mSpaceInfo.viewPoint.x, mSpaceInfo.viewPoint.y, mSpaceInfo.viewPoint.z);
-    //qDebug("Surface : %f %f %f", mModelData->size.max.x, mModelData->size.max.y, mModelData->size.max.z);
-
-    //qDebug("Normalize Surface : %f %f %f", glm::normalize(mModelData->size.max).x, glm::normalize(mModelData->size.max).y, glm::normalize(mModelData->size.max).z);
-    qDebug("Normalize Light : %f %f %f", normalLight.x, normalLight.y, normalLight.z);
-    qDebug("Normalize View : %f %f %f", normalView.x, normalView.y, normalView.z);
-
-
+    mSpaceInfo.viewPoint    = glm::vec3(GL_SPACE_DEFUALT_VIEW_POINT_POS_X, GL_SPACE_DEFUALT_VIEW_POINT_POS_Y, GL_SPACE_DEFUALT_VIEW_POINT_POS_Z);
+    mSpaceInfo.lightSource  = glm::vec3(GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_X, GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_Y, GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_Z);
+    mViewportInfo           = GLSpace::Rectangle(0, 0, 0, 0);
 }
 
+void GLRenderer::setViewPortsize(GLSpace::Rectangle rect) {
+        mViewportInfo = rect;
+}
 int32_t GLRenderer::init()
 {
     int32_t ret = GL_RENDERER_FAIL;
@@ -267,9 +244,9 @@ int32_t GLRenderer::createContext()
     } else {}
     switch (mType) {
     case SHADER_TYPE_PHONG :
-        mContext.shader[GLES_SHADER_TYPE_VERTEX]    = registerShader(VERTEX_SHADER_PHONG_STR, GL_VERTEX_SHADER);
+        mContext.shader[GLES_SHADER_TYPE_VERTEX]    = registerShader(VERTEX_SHADER_BLINN_PHONG_STR, GL_VERTEX_SHADER);
 
-        mContext.shader[GLES_SHADER_TYPE_FRAGMENT]  = registerShader(FRAGMENT_SHADER_PHONG_STR, GL_FRAGMENT_SHADER);
+        mContext.shader[GLES_SHADER_TYPE_FRAGMENT]  = registerShader(FRAGMENT_SHADER_BLINN_PHONG_STR, GL_FRAGMENT_SHADER);
         qDebug("Program(%d)", mContext.program);
         qDebug("Shader V(%d) F(%d)", mContext.shader[GLES_SHADER_TYPE_VERTEX], mContext.shader[GLES_SHADER_TYPE_FRAGMENT]);
         if (connectShader2Program() == GL_RENDERER_FAIL) {
@@ -293,20 +270,24 @@ int32_t GLRenderer::createContext()
 
 void GLRenderer::draw(const ModelData *modelData)
 {
-    glViewport(0, 0, mViewPort.width(), mViewPort.height());
+    if ((mViewportInfo.x == 0) &&  (mViewportInfo.width == 0) &&
+        (mViewportInfo.y == 0) &&  (mViewportInfo.height == 0)) {
+        return;
+    }
+
+    glViewport(mViewportInfo.x, mViewportInfo.y , mViewportInfo.width, mViewportInfo.height);
     glm::mat4 mvpMatrix         = glm::mat4(1.0f);
     glm::mat4 mvMatrix          = glm::mat4(1.0f);
     glm::mat4 modelMatrix       = glm::mat4(1.0f);
     glm::mat4 viewMatrix        = glm::mat4(1.0f);
     glm::mat4 projectionMatrix  = glm::mat4(1.0f);
 
-    projectionMatrix = glm::perspective(glm::radians(mSpaceInfo.fov), (float)mViewPort.width() /  (float)mViewPort.height(), 0.1f, 500000.f);
+    float ratio = (float)mViewportInfo.width /  (float)mViewportInfo.height;   projectionMatrix = glm::perspective(glm::radians(mSpaceInfo.fov), ratio, 0.1f, GL_SPACE_DEFUALT_MAX_DISTANCE);
     viewMatrix = glm::lookAt(mSpaceInfo.viewPoint, glm::vec3(0,
                                                              0,
                                                              0), GLSpace::getUpVector());
-    //modelMatrix = glm::scale(modelMatrix, glm::vec3(50.0 / mModelData->size.length.x , 50.0 / mModelData->size.length.y, 50.0 / mModelData->size.length.z));
-    modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0, 1.0, 1.0));
-    glClearColor(0.0, 0.f, 0.f, 0.f);
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0 / modelData->size.length.x , 1.0 / modelData->size.length.y, 1.0 / modelData->size.length.z));
+    glClearColor(0.085f, 0.095f, 0.085f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;

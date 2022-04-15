@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QtQuick/QQuickItem>
+#include <QtGlobal>
 #include "GLRenderer.h"
 
 class ViewModel : public QQuickItem
@@ -17,6 +18,8 @@ public:
     qreal swap() const {return mSwap;}
     void setSwap(qreal swap);
 
+    Q_INVOKABLE void setViewport(QVariant x, QVariant y, QVariant width, QVariant height);
+
 signals :
     void swapChanged();
 
@@ -29,6 +32,7 @@ private slots :
 private :
     qreal mSwap;
     GLRenderer *glRenderer;
+    GLSpace::Rectangle mViewport;
 };
 
 

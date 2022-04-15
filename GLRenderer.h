@@ -27,9 +27,7 @@ public:
     void locateLightSource(glm::vec3 pos);
     void locateViewPoint(glm::vec3 pos);
 
-    inline void setViewPortsize(const QSize &size) {
-        mViewPort = size;
-    }
+    void setViewPortsize(GLSpace::Rectangle rect);
 
     inline void setWindow(QQuickWindow *window) {
         m_window = window;
@@ -60,7 +58,7 @@ private :
     vector<ModelData>  *mModelList;
     GLRendererContext   mContext;
     GLSpace::SpaceInfo  mSpaceInfo;
-    QSize               mViewPort;
+    GLSpace::Rectangle  mViewportInfo;
     QQuickWindow        *m_window;
 };
 
