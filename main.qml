@@ -14,14 +14,16 @@ Item {
     property color gWhite2  : Qt.rgba(0.819, 0.819, 0.839)
     property color gBlue0   : Qt.rgba(0.039, 0.517, 1.0)
     property color gBlue1   : Qt.rgba(0.0, 0.478, 1.0)
-    property color gGreen0   : Qt.rgba(0.203, 0.78, 0.349)
+    property color gGreen0  : Qt.rgba(0.203, 0.78, 0.349)
     property color gBlack0  : Qt.rgba(0.109, 0.109, 0.117)
     property color gBlack1  : Qt.rgba(0.172, 0.172, 0.180)
+    property color gBlack2  : Qt.rgba(0.386, 0.386, 0.398)
     property color gRed0    : Qt.rgba(1.0, 0.270, 0.227)
     property color gRed1    : Qt.rgba(1.0, 0.231, 0.188)
     property color gOrange0 : Qt.rgba(1.0, 0.584, 0.0)
     width: gWindowWidth
     height: gWindowHeight
+
     FontLoader {
         id : sfPro
         source: "resource/font/SFPro.ttf"
@@ -43,6 +45,15 @@ Item {
 
         Component.onCompleted: {
             setViewport(x, y, width, height)
+        }
+    }
+
+    Connections {
+        id : viewModelConnector
+        target :  viewModel
+        onSigModelLoadded : {
+            sidePannel.setDefaultSpaceVal(viewModel.getLightPos(), viewModel.getViewPos(), viewModel.getModelRotationPos())
+            sidePannel.setMaterialParam(viewModel.getAmbient(), viewModel.getDiffuse(), viewModel.getSpecular(), viewModel.getShiness())
         }
     }
 

@@ -1,5 +1,6 @@
 #include <QGuiApplication>
 #include <QtQuick/QQuickView>
+#include <QObject>
 #include "viewmodel.h"
 
 int main(int argc, char *argv[])
@@ -11,7 +12,6 @@ int main(int argc, char *argv[])
     QQuickView view;
     view.setResizeMode(QQuickView::SizeRootObjectToView);
     view.setSource(QUrl("qrc:/main.qml"));
-//    view.rootContext()->setContextProperty("CurDirPath", QString(QDir::currentPath()));
 
     view.show();
 

@@ -10,25 +10,6 @@ ModelLoader::ModelLoader()
 
 }
 
-void ModelLoader::initModelData()
-{
-#if 0
-    mModelData.vertices.clear();
-    mModelData.normals.clear();
-    mModelData.indices.clear();
-    mModelData.texcoord.clear();
-    mModelData.textures.clear();
-    vector<glm::vec3>().swap(mModelData.vertices);
-    vector<glm::vec3>().swap(mModelData.normals);
-    vector<uint32_t>().swap(mModelData.indices);
-    vector<glm::vec2>().swap(mModelData.texcoord);
-    map<TEXTURE_TYPE, GLuint>().swap(mModelData.textures);
-    for (int i = 0; i < NUM_VBO_ID_TYPE; i++) {
-        glDeleteBuffers(i, &mModelData.vboId[i]);
-        mModelData.vboId[i] = 0;
-    }
-#endif
-}
 QStringList ModelLoader::getTextureFilePath(string path)
 {    
     QStringList textureFilePath;
@@ -112,22 +93,16 @@ GLuint ModelLoader::getVboId(int32_t type, ModelData *modelData)
     case VBO_ID_TYPE_VERTEX :
         glBindBuffer(GL_ARRAY_BUFFER, vboId);
         glBufferData(GL_ARRAY_BUFFER, modelData->vertices.size() * sizeof(glm::vec3), &modelData->vertices[0], GL_STATIC_DRAW);
-        //glVertexAttribPointer(attribute, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
-        //glEnableVertexAttribArray(attribute);
         glBindBuffer(GL_ARRAY_BUFFER,0);
         break;
     case VBO_ID_TYPE_NORMAL :
         glBindBuffer(GL_ARRAY_BUFFER, vboId);
         glBufferData(GL_ARRAY_BUFFER, modelData->normals.size() * sizeof(glm::vec3), &modelData->normals[0], GL_STATIC_DRAW);
-        //glVertexAttribPointer(attribute, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
-        //glEnableVertexAttribArray(attribute);
         glBindBuffer(GL_ARRAY_BUFFER,0);
         break;
     case VBO_ID_TYPE_TEXCOORD :
         glBindBuffer(GL_ARRAY_BUFFER, vboId);
         glBufferData(GL_ARRAY_BUFFER, modelData->texcoord.size() * sizeof(modelData->texcoord[0]), &modelData->texcoord[0], GL_STATIC_DRAW);
-        //glVertexAttribPointer(attribute, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void*)0);
-        //glEnableVertexAttribArray(attribute);
         glBindBuffer(GL_ARRAY_BUFFER,0);
         break;
     case VBO_ID_TYPE_INDEX :
@@ -148,7 +123,6 @@ GLuint ModelLoader::getTextureId(aiString path)
     GLuint id           = 0U;
     QImage *srcImg = new QImage();    
     srcImg->load((mDirectoryPath + "texture/" + path.C_Str()).c_str());
-    qDebug("Resolution : %dx%d - %d", srcImg->width(), srcImg->height(), srcImg->depth() ? 1 : 0);
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, srcImg->width(), srcImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, srcImg->bits());
@@ -164,7 +138,6 @@ GLuint ModelLoader::getTextureId(aiString path)
 
 void ModelLoader::loadTexture(aiMaterial *material, vector<GLuint> *textureId, aiTextureType type)
 {
-    qDebug("Tpye : %d",  material->GetTextureCount(type));
     for (uint32_t i = 0; i < material->GetTextureCount(type); i++) {
         aiString path;
         material->GetTexture(type, i, &path);
@@ -172,12 +145,9 @@ void ModelLoader::loadTexture(aiMaterial *material, vector<GLuint> *textureId, a
     }
 }
 
-ModelData ModelLoader::parseModel(const aiScene *scene, aiMesh* mesh)
+ModelData ModelLoader::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t meshIndex)
 {
     ModelData modelData;
-    qDebug("Mesh Vertex : %d", mesh->mNumVertices);
-    qDebug("Mesh Face   : %d", mesh->mNumFaces);
-
     for (uint32_t v = 0U; v < mesh->mNumVertices; v++) {
         modelData.size.max.x = (mesh->mVertices[v].x > modelData.size.max.x) ? mesh->mVertices[v].x : modelData.size.max.x;
         modelData.size.max.y = (mesh->mVertices[v].y > modelData.size.max.y) ? mesh->mVertices[v].y  : modelData.size.max.y;
@@ -186,14 +156,17 @@ ModelData ModelLoader::parseModel(const aiScene *scene, aiMesh* mesh)
         modelData.size.min.y = (mesh->mVertices[v].y  < modelData.size.min.y) ? mesh->mVertices[v].y  : modelData.size.min.y;
         modelData.size.min.z = (mesh->mVertices[v].z  < modelData.size.min.z) ? mesh->mVertices[v].z  : modelData.size.min.z;
 
-        modelData.vertices.push_back(glm::vec3(    mesh->mVertices[v].x,
+        modelData.vertices.push_back(glm::vec3(     mesh->mVertices[v].x,
                                                     mesh->mVertices[v].y,
                                                     mesh->mVertices[v].z));
-        modelData.normals.push_back(glm::vec3(     mesh->mNormals[v].x,
+        modelData.normals.push_back(glm::vec3(      mesh->mNormals[v].x,
                                                     mesh->mNormals[v].y,
                                                     mesh->mNormals[v].z));
-        modelData.texcoord.push_back(glm::vec2(    mesh->mTextureCoords[0][v].x,
-                                                    mesh->mTextureCoords[0][v].y));
+
+        if (mesh->HasTextureCoords(meshIndex)) {
+            modelData.texcoord.push_back(glm::vec2(     mesh->mTextureCoords[0][v].x,
+                                                        mesh->mTextureCoords[0][v].y));
+        }
     }
 
 
@@ -201,25 +174,25 @@ ModelData ModelLoader::parseModel(const aiScene *scene, aiMesh* mesh)
     modelData.size.length.y = abs(modelData.size.max.y - modelData.size.min.y);
     modelData.size.length.z = abs(modelData.size.max.z - modelData.size.min.z);
 
-    qDebug("Min : %f %f %f"     , modelData.size.min.x, modelData.size.min.y, modelData.size.min.z);
-    qDebug("Max : %f %f %f"     , modelData.size.max.x, modelData.size.max.y, modelData.size.max.z);
-    qDebug("Length : %f %f %f"  , modelData.size.length.x, modelData.size.length.y, modelData.size.length.z);
-
-
     for (uint32_t f = 0U; f < mesh->mNumFaces; f++) {
         aiFace face = mesh->mFaces[f];
-        for (int i = 0; i < face.mNumIndices; i++) {
+        for (uint32_t i = 0; i < face.mNumIndices; i++) {
             modelData.indices.push_back(face.mIndices[i]);
         }
     }
 
-    modelData.vboId[VBO_ID_TYPE_VERTEX] =  getVboId(VBO_ID_TYPE_VERTEX, &modelData);
-    modelData.vboId[VBO_ID_TYPE_NORMAL] =  getVboId(VBO_ID_TYPE_NORMAL, &modelData);
-    modelData.vboId[VBO_ID_TYPE_TEXCOORD] = getVboId(VBO_ID_TYPE_TEXCOORD, &modelData);
-    modelData.vboId[VBO_ID_TYPE_INDEX] =  getVboId(VBO_ID_TYPE_INDEX, &modelData);
+    modelData.vboId[VBO_ID_TYPE_VERTEX]     =  getVboId(VBO_ID_TYPE_VERTEX, &modelData);
+    modelData.vboId[VBO_ID_TYPE_NORMAL]     =  getVboId(VBO_ID_TYPE_NORMAL, &modelData);
+    modelData.vboId[VBO_ID_TYPE_TEXCOORD]   =  getVboId(VBO_ID_TYPE_TEXCOORD, &modelData);
+    modelData.vboId[VBO_ID_TYPE_INDEX]      =  getVboId(VBO_ID_TYPE_INDEX, &modelData);
 
-    if (mesh->mMaterialIndex >= 0) {        
+    if (mesh->mMaterialIndex >= 0U) {
         aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
+        modelData.materialName = material->GetName().C_Str();
+        material->Get(AI_MATKEY_COLOR_AMBIENT, modelData.weight[LIGHT_WEIGHT_TYPE_AMBIENT]);
+        material->Get(AI_MATKEY_COLOR_DIFFUSE, modelData.weight[LIGHT_WEIGHT_TYPE_DIFFUSE]);
+        material->Get(AI_MATKEY_COLOR_SPECULAR, modelData.weight[LIGHT_WEIGHT_TYPE_SPECULAR]);
+
         modelData.textures.clear();
         loadTexture(material, &modelData.textures[aiTextureType_DIFFUSE], aiTextureType_DIFFUSE);
     }
@@ -227,13 +200,15 @@ ModelData ModelLoader::parseModel(const aiScene *scene, aiMesh* mesh)
     return modelData;
 }
 
-vector<ModelData>* ModelLoader::loadModel(string path)
+void ModelLoader::loadModel(string path, vector<ModelData> *modelList)
 {
-    int i = 0;
-    int j = 0;
+    uint i = 0U;
+    uint j = 0U;
 
-    mModelList.clear();
-    vector<ModelData>().swap(mModelList);
+    if (modelList->size() > 0) {
+        modelList->clear();
+        vector<ModelData>().swap(*modelList);
+    }
 
     mDirectoryPath = getBasePath(path);
 
@@ -244,18 +219,16 @@ vector<ModelData>* ModelLoader::loadModel(string path)
 
     const aiNode *node = scene->mRootNode;
     aiMesh* mesh;
-    for (i = 0; node->mNumMeshes; i++) {
+    for (i = 0U; node->mNumMeshes; i++) {
         mesh = scene->mMeshes[node->mMeshes[i]];
-        mModelList.push_back(parseModel(scene, mesh));
+        modelList->push_back(parseModel(scene, mesh, node->mMeshes[i]));
     }
 
-    for (i = 0; i < node->mNumChildren; i++) {
+    for (i = 0U; i < node->mNumChildren; i++) {
         const aiNode *childrenNode = node->mChildren[i];
-        for (j = 0; j < childrenNode->mNumMeshes; j++) {
+        for (j = 0U; j < childrenNode->mNumMeshes; j++) {
             mesh = scene->mMeshes[childrenNode->mMeshes[j]];
-            mModelList.push_back(parseModel(scene, mesh));
+            modelList->push_back(parseModel(scene, mesh, childrenNode->mMeshes[j]));
         }
     }
-
-    return &mModelList;
 }

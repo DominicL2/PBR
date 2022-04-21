@@ -34,6 +34,13 @@ typedef enum {
     NUM_VBO_ID_TYPE
 } VBO_ID_TYPE;
 
+typedef enum {
+    LIGHT_WEIGHT_TYPE_AMBIENT = 0,
+    LIGHT_WEIGHT_TYPE_DIFFUSE,
+    LIGHT_WEIGHT_TYPE_SPECULAR,
+    NUM_LIGHT_WEIGHT_TYPE
+} LIGHT_WEIGHT_TYPE;
+
 typedef struct {
    GLuint id;
    TEXTURE_TYPE type;
@@ -46,25 +53,18 @@ typedef struct MODEL_SIZE{
     MODEL_SIZE() {
         min = glm::vec3(0.0, 0.0, 0.0);
         max = glm::vec3(0.0, 0.0, 0.0);
-    }
+   }
 } ModelSize;
-
-typedef struct GL_TRIANGLE{
-    uint32_t index[3];
-
-    GL_TRIANGLE() {
-        index[0] = 0U;
-        index[1] = 0U;
-        index[2] = 0U;
-    }
-} GLTriangle;
-
 typedef struct ModelData {
     vector<glm::vec3> vertices;
     vector<glm::vec3> normals;
     vector<uint32_t> indices;
     vector<glm::vec2> texcoord;
+    string objectName;
+    string materialName;
     unordered_map<aiTextureType, vector<GLuint>>  textures;
+    aiColor3D weight[NUM_LIGHT_WEIGHT_TYPE];
+    vector<float> parameter;
     GLuint vboId[NUM_VBO_ID_TYPE];
     ModelSize size;
     ModelData() {
@@ -73,11 +73,18 @@ typedef struct ModelData {
         indices.clear();
         texcoord.clear();
         textures.clear();
+        parameter.clear();
         vector<glm::vec3>().swap(vertices);
         vector<glm::vec3>().swap(normals);
         vector<uint32_t>().swap(indices);
         vector<glm::vec2>().swap(texcoord);
+        vector<float>().swap(parameter);
         unordered_map<aiTextureType, vector<GLuint>>().swap(textures);
+        vboId[VBO_ID_TYPE_VERTEX]   = 0U;
+        vboId[VBO_ID_TYPE_NORMAL]   = 0U;
+        vboId[VBO_ID_TYPE_TEXCOORD] = 0U;
+        vboId[VBO_ID_TYPE_INDEX]    = 0U;
+        materialName = "";
     }
 } MODEL_DATA;
 
@@ -87,22 +94,19 @@ public:
     ModelLoader();
 
     /// Load graphic model data using assimp
-    vector<ModelData>* loadModel(string path);
-
-    void createVBO(int32_t index);
-    GLuint getVboId(int32_t type, ModelData *modelData);
+    void loadModel(string path, vector<ModelData> *modelList);
 
 private :
     vector<ModelData> mModelList;
     string            mDirectoryPath;
-    /// Intialize graphic model data
-    void initModelData();
+
+    GLuint getVboId(int32_t type, ModelData *modelData);
 
     /// Load Texture
     QStringList getTextureFilePath(string path);
     GLuint getTextureId(aiString path);
     void loadTexture(aiMaterial *material, vector<GLuint> *textureId, aiTextureType type);
-    ModelData parseModel(const aiScene *scene, aiMesh* mesh);
+    ModelData parseModel(const aiScene *scene, aiMesh* mesh,  uint32_t meshIndex);
     aiTextureType getTextureTypeUsingFileName(string name);
     string getBasePath(string fullPath);
 };

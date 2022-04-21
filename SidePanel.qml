@@ -1,4 +1,6 @@
 import QtQuick 2.0
+import Qt.labs.controls 1.0
+import QtQuick.Layouts 1.3
 
 Rectangle {
     property int gSidePannelX : 730
@@ -15,11 +17,54 @@ Rectangle {
     border.color: gWhite1
     border.width: 2
 
+    function changeLayout(pageIdx) {
+        switch (pageIdx) {
+        case 0 :
+            break;
+        case 1 :
+            break;
+        }
+    }
+
+    function setDefaultSpaceVal(lightPos, viewPos, modelRotation) {
+        commonTab.setLightPos(lightPos)
+        commonTab.setViewPos(viewPos)
+        commonTab.setModelRotation(modelRotation)
+    }
+
+    function setMaterialParam(ambient, diffuse, specular, shiness) {
+        //materialTab.setComboBox(viewModel.getMaterialList())
+        materialTab.setAmbient(ambient)
+        materialTab.setDiffuse(diffuse)
+        materialTab.setSpecular(specular)
+        materialTab.setShiness(shiness)
+    }
+
     SidePanelTitle {
         id : title
     }
 
     SidePanelTabbar {
-        id : taBbar
+        id : tabbar
+    }    
+
+    StackLayout {
+        id : tabLayout
+        x : 0
+        y : 115
+        width : parent.width
+        height : 605
+        currentIndex: tabbar.currentIndex
+        SidePanelCommonTab {
+            id : commonTab
+
+            onPathStrChanged: {
+                viewModel.loadGrpahicsModel(pathStr)
+            }
+
+        }
+        SidePanelMaterialTab {
+            id : materialTab
+        }
     }
 }

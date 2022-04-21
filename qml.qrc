@@ -4,9 +4,19 @@
         <file>SidePanel.qml</file>
         <file>SidePanelTitle.qml</file>
         <file>SidePanelTabbar.qml</file>
+        <file>SidePanelCommonTab.qml</file>
+        <file>SidePanelCommonTab_FileLoader.qml</file>
+        <file>SidePanelCommonTab_LogBox.qml</file>
+        <file>CustomButton.qml</file>
+        <file>Editor3D.qml</file>
+        <file>Controller3D.qml</file>
+        <file>Controller1D.qml</file>
+        <file>SidePanelMaterialTab.qml</file>
+        <file>SidePanelMaterialTab_ComboBox.qml</file>
     </qresource>
     <qresource prefix="/resource">
         <file>image/light_icon.png</file>
         <file>font/SFPro.ttf</file>
+        <file>image/forlder_icon.png</file>
     </qresource>
 </RCC>

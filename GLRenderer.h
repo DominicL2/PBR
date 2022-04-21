@@ -6,6 +6,7 @@
 #include <QQuickItem>
 #include <QSize>
 #include <vector>
+#include <unordered_map>
 #include "ModelLoader.h"
 #include "gldefine.h"
 #include "pbrshader.h"
@@ -34,11 +35,47 @@ public:
     }
 
     bool isLoadded() {
-        return mLoadded;
+        return mContextCreated;
     }
 
-signals:
+    inline glm::vec3 getViewPos() {
+        return mSpaceInfo.viewPoint;
+    }
+    inline glm::vec3 getLightPos() {
+        return mSpaceInfo.lightSource;
+    }
+    inline glm::vec3 getModelRotation() {
+        return mModelRatation;
+    }
 
+    inline void setViewPos(glm::vec3 pos) {
+        mSpaceInfo.viewPoint = pos;
+    }
+    inline void setLightPos(glm::vec3 pos) {
+        mSpaceInfo.lightSource = pos;
+    }
+    inline void setModelRotation(glm::vec3 pos){
+         mModelRatation = pos;
+    }
+
+    void setMaterial(string materialName);
+    void getMaterialList(vector<string> *materialList);
+
+    void setAmbient(glm::vec3 pos);
+    void setDiffuse(glm::vec3 pos);
+    void setSpecular(glm::vec3 pos);
+
+    void setShiness(float val);
+    float getShiness();
+
+    glm::vec3 getAmbient();
+    glm::vec3 getDiffuse();
+    glm::vec3 getSpecular();
+    bool loadded() const;
+    void setLoadded(bool loadded);
+
+signals:
+    void sigMeshInfo(string info);
 public slots:
     void paint();
 
@@ -51,15 +88,23 @@ private :
     void checkShaderError(GLuint shader, GLuint flag, bool isProgram, const string &errMsg);
     void draw(const ModelData *modelData);
 
-    bool mLoadded;
+    bool mContextCreated;
+    bool mModelLoadded;
 
     SHADER_TYPE         mType;
     ModelLoader         mModelLoader;
-    vector<ModelData>  *mModelList;
+    vector<ModelData>   mModelList;
     GLRendererContext   mContext;
     GLSpace::SpaceInfo  mSpaceInfo;
     GLSpace::Rectangle  mViewportInfo;
+    glm::vec3           mModelRatation;
+    glm::vec3           mLengthAll;
+    glm::vec3           mScale;
     QQuickWindow        *m_window;
+
+    vector<string>                  mMaterialList;
+    unordered_map<string, uint32_t> mMaterialMap;
+    uint32_t                        mCurrMaterialIndex;
 };
 
 #endif // MODEL_GLRENDER_H

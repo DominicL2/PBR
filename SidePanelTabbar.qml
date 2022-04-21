@@ -6,12 +6,17 @@ TabBar {
     x : 0
     y : 75
     width : 350
-    height : 200
+    height : 30
+    function getTabButtonHeight() {
+        return commonButton.height
+    }
+
     background: Rectangle {
         color : "transparent"
     }
 
     TabButton {
+        id : commonButton
         contentItem: Text {
             text: "Common"
             font.family: sfPro.name
@@ -19,25 +24,42 @@ TabBar {
             font.pixelSize: 13
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
-            color : tabBar.currentIndex == 0 ? gWhite0 : gBlue0
+            color : gBlue0
         }
 
         background : Rectangle {
-            color : tabBar.currentIndex == 0 ? gBlue0 : "transparent"
+            anchors.fill: parent
+            color : "transparent"
+            Rectangle {
+                x : parent.x
+                y : (parent.y + parent.height) - 2
+                width : parent.width
+                height : 2
+                color : tabBar.currentIndex == 0 ? gBlue0 : "transparent"
+            }
         }
     }
     TabButton {
+        id: parameterButton
         contentItem: Text {
-            text: "Parameter"
+            text: "Material"
             font.family: sfPro.name
             font.bold: true
             font.pixelSize: 13
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
-            color : tabBar.currentIndex == 1 ? gWhite0 : gBlue0
+            color : gBlue0
         }
         background : Rectangle {
-            color : tabBar.currentIndex == 1 ? gBlue0 : "transparent"
+            anchors.fill: parent
+            color : "transparent"
+            Rectangle {
+                x : parent.x
+                y : (parent.y + parent.height) - 2
+                width : parent.width
+                height : 2
+                color : tabBar.currentIndex == 1 ? gBlue0 : "transparent"
+            }
         }
     }
 
