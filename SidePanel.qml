@@ -33,7 +33,7 @@ Rectangle {
     }
 
     function setMaterialParam(ambient, diffuse, specular, shiness) {
-        //materialTab.setComboBox(viewModel.getMaterialList())
+        materialTab.setComboBox(viewModel.getMaterialList())
         materialTab.setAmbient(ambient)
         materialTab.setDiffuse(diffuse)
         materialTab.setSpecular(specular)

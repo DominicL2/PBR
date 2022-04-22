@@ -24,6 +24,11 @@ GLRenderer::GLRenderer()
     mCurrMaterialIndex = 0U;
 }
 
+GLRenderer::~GLRenderer()
+{
+    init();
+}
+
 void GLRenderer::setViewPortsize(GLSpace::Rectangle rect) {
         mViewportInfo = rect;
 }
@@ -81,6 +86,7 @@ int32_t GLRenderer::load(string path)
         mCurrMaterialIndex = 0;
         mModelLoadded = true;
         mModelRatation = glm::vec3(0.f, 0.f, 0.f);
+        mLengthAll = glm::vec3(0.f, 0.f, 0.f);
         ret = GL_RENDERER_SUCCESS;        
     } else {}
 
@@ -104,7 +110,6 @@ int32_t GLRenderer::load(string path)
                "y(" << mModelList.at(i).size.length.y << ") " <<
                "z(" << mModelList.at(i).size.length.z << ") " << endl;
     }
-
     float minLength = mLengthAll.x;
     minLength = mLengthAll.y < minLength ?  mLengthAll.y : minLength;
     minLength = mLengthAll.z < minLength ?  mLengthAll.z : minLength;
@@ -348,6 +353,7 @@ void GLRenderer::draw(const ModelData *modelData)
     viewMatrix = glm::lookAt(mSpaceInfo.viewPoint, glm::vec3(0,
                                                              0,
                                                              0), GLSpace::getUpVector());
+
     modelMatrix = glm::scale(modelMatrix, glm::vec3(mScale.x / mLengthAll.x , mScale.y / mLengthAll.y, mScale.z / mLengthAll.z));
     modelMatrix = glm::rotate(modelMatrix, glm::radians(mModelRatation.z), glm::vec3(0.f, 0.f, 1.f));
     modelMatrix = glm::rotate(modelMatrix, glm::radians(mModelRatation.y), glm::vec3(0.f, 1.f, 0.f));
@@ -407,9 +413,9 @@ void GLRenderer::draw(const ModelData *modelData)
     }
 
     glUniform3f(mContext.uniform[PHONG_SHADER_UNIFORM_DEFAULT_COLOR],
-                 0.8,
-                 0.8,
-                 0.8 );
+                 defaultColor.x,
+                 defaultColor.y,
+                 defaultColor.z );
 
     glDrawElements(GL_TRIANGLES, modelData->indices.size(), GL_UNSIGNED_INT, 0);
 
@@ -433,9 +439,8 @@ void GLRenderer::paint()
 {
     if (mModelLoadded  && isLoadded()) {
         glUseProgram(mContext.program);
-
-        glClearColor(0.085f, 0.095f, 0.085f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearColor(0.085f, 0.095f, 0.085f, 0.f);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -452,8 +457,6 @@ void GLRenderer::paint()
         glBindBuffer(GL_ARRAY_BUFFER,0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
         glUseProgram(0);
-
-        m_window->resetOpenGLState();
     } else {}
 }
 

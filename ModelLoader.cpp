@@ -169,7 +169,6 @@ ModelData ModelLoader::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t m
         }
     }
 
-
     modelData.size.length.x = abs(modelData.size.max.x - modelData.size.min.x);
     modelData.size.length.y = abs(modelData.size.max.y - modelData.size.min.y);
     modelData.size.length.z = abs(modelData.size.max.z - modelData.size.min.z);

@@ -57,7 +57,10 @@ Rectangle {
                         font.bold: true
                     }
                 }
-
+                SidePanelMaterialTab_ComboBox {
+                    id : comboBox
+                    model : comboBoxList
+                }
             }
 
             /// Ambient

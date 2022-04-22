@@ -22,6 +22,7 @@ class GLRenderer : public QObject, protected QOpenGLFunctions
     Q_OBJECT
 public:
     GLRenderer();
+    ~GLRenderer();
     int32_t init();
     int32_t load(string path);
 

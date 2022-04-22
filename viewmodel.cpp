@@ -15,10 +15,9 @@ ViewModel::~ViewModel()
 void ViewModel::handleWindowChanged(QQuickWindow *quickWindow)
 {
     if (quickWindow) {
-        connect(quickWindow, &QQuickWindow::beforeSynchronizing, this, &ViewModel::sync, Qt::DirectConnection);
-    }
-
-    quickWindow->setClearBeforeRendering(false);
+        connect(quickWindow, &QQuickWindow::afterSynchronizing, this, &ViewModel::sync, Qt::DirectConnection);
+        quickWindow->setClearBeforeRendering(false);
+    } else {}
 }
 
 void ViewModel::setSwap(qreal swap)
@@ -37,10 +36,8 @@ void ViewModel::sync()
 {
     if (!glRenderer) {
         glRenderer = new GLRenderer();
-
         connect(glRenderer, SIGNAL(sigMeshInfo(string)), this, SLOT(printMeshInfo(string)));
     } else {}
-
     connect(window(), &QQuickWindow::beforeRendering, glRenderer, &GLRenderer::paint, Qt::DirectConnection);
     glRenderer->setViewPortsize(mViewport);
 }
