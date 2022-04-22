@@ -17,6 +17,10 @@ Rectangle {
     border.color: gWhite1
     border.width: 2
 
+    function getPath() {
+        return commonTab.pathStr
+    }
+
     function changeLayout(pageIdx) {
         switch (pageIdx) {
         case 0 :
@@ -33,11 +37,14 @@ Rectangle {
     }
 
     function setMaterialParam(ambient, diffuse, specular, shiness) {
-        materialTab.setComboBox(viewModel.getMaterialList())
         materialTab.setAmbient(ambient)
         materialTab.setDiffuse(diffuse)
         materialTab.setSpecular(specular)
         materialTab.setShiness(shiness)
+    }
+
+    function setMaterialList(list) {
+        materialTab.setComboBox(list)
     }
 
     SidePanelTitle {
@@ -59,7 +66,8 @@ Rectangle {
             id : commonTab
 
             onPathStrChanged: {
-                viewModel.loadGrpahicsModel(pathStr)
+                loadingCircle.running = true
+                //viewModel.loadGrpahicsModel(pathStr)
             }
 
         }

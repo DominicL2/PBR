@@ -21,7 +21,7 @@ GLRenderer::GLRenderer()
     mSpaceInfo.lightSource  = glm::vec3(GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_X, GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_Y, GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_Z);
     mViewportInfo           = GLSpace::Rectangle(0, 0, 0, 0);
 
-    mCurrMaterialIndex = 0U;
+    mCurrMaterialName = "";
 }
 
 GLRenderer::~GLRenderer()
@@ -77,13 +77,10 @@ int32_t GLRenderer::init()
 int32_t GLRenderer::load(string path)
 {
     int32_t ret = GL_RENDERER_FAIL;
-
     mModelLoader.loadModel(path, &mModelList);
     if (mModelList.size() > 0) {
-        mMaterialList.clear();
-        vector<string>().swap(mMaterialList);
         mMaterialMap.clear();
-        mCurrMaterialIndex = 0;
+        mCurrMaterialName = "";
         mModelLoadded = true;
         mModelRatation = glm::vec3(0.f, 0.f, 0.f);
         mLengthAll = glm::vec3(0.f, 0.f, 0.f);
@@ -95,9 +92,8 @@ int32_t GLRenderer::load(string path)
 
     for (size_t i = 0; i < mModelList.size(); i++) {
         mModelList[i].parameter.resize(NUM_PHONG_PARAMETER_TYPE);
-        mModelList[i].parameter[PHONG_PARAMETER_TYPE_SHINESS] = 1.0;
-        mMaterialMap[mModelList[i].materialName] = i;
-        mMaterialList.push_back(mModelList[i].materialName);
+        mModelList[i].parameter[PHONG_PARAMETER_TYPE_SHINESS] = 1.0;        
+        mMaterialMap[mModelList[i].materialName].push_back(i);
         mLengthAll.x = mModelList[i].size.length.x > mLengthAll.x ? mModelList[i].size.length.x :  mLengthAll.x;
         mLengthAll.y = mModelList[i].size.length.y > mLengthAll.y ? mModelList[i].size.length.y :  mLengthAll.y;
         mLengthAll.z = mModelList[i].size.length.z > mLengthAll.z ? mModelList[i].size.length.z :  mLengthAll.z;
@@ -110,6 +106,8 @@ int32_t GLRenderer::load(string path)
                "y(" << mModelList.at(i).size.length.y << ") " <<
                "z(" << mModelList.at(i).size.length.z << ") " << endl;
     }
+
+    mCurrMaterialName = mModelList[0].materialName;
     float minLength = mLengthAll.x;
     minLength = mLengthAll.y < minLength ?  mLengthAll.y : minLength;
     minLength = mLengthAll.z < minLength ?  mLengthAll.z : minLength;
@@ -462,58 +460,67 @@ void GLRenderer::paint()
 
 void GLRenderer::setAmbient(glm::vec3 pos)
 {
-    mModelList[mCurrMaterialIndex].weight[LIGHT_WEIGHT_TYPE_AMBIENT].r = pos.x;
-    mModelList[mCurrMaterialIndex].weight[LIGHT_WEIGHT_TYPE_AMBIENT].g = pos.y;
-    mModelList[mCurrMaterialIndex].weight[LIGHT_WEIGHT_TYPE_AMBIENT].b = pos.z;
+    for (int i = 0; i < mMaterialMap[mCurrMaterialName].size(); i++) {
+        mModelList[mMaterialMap[mCurrMaterialName][i]].weight[LIGHT_WEIGHT_TYPE_AMBIENT].r = pos.x;
+        mModelList[mMaterialMap[mCurrMaterialName][i]].weight[LIGHT_WEIGHT_TYPE_AMBIENT].g = pos.y;
+        mModelList[mMaterialMap[mCurrMaterialName][i]].weight[LIGHT_WEIGHT_TYPE_AMBIENT].b = pos.z;
+    }
 }
 
 void GLRenderer::setDiffuse(glm::vec3 pos)
 {
-    mModelList[mCurrMaterialIndex].weight[LIGHT_WEIGHT_TYPE_DIFFUSE].r = pos.x;
-    mModelList[mCurrMaterialIndex].weight[LIGHT_WEIGHT_TYPE_DIFFUSE].g = pos.y;
-    mModelList[mCurrMaterialIndex].weight[LIGHT_WEIGHT_TYPE_DIFFUSE].b = pos.z;
+    for (int i = 0; i < mMaterialMap[mCurrMaterialName].size(); i++) {
+        mModelList[mMaterialMap[mCurrMaterialName][i]].weight[LIGHT_WEIGHT_TYPE_DIFFUSE].r = pos.x;
+        mModelList[mMaterialMap[mCurrMaterialName][i]].weight[LIGHT_WEIGHT_TYPE_DIFFUSE].g = pos.y;
+        mModelList[mMaterialMap[mCurrMaterialName][i]].weight[LIGHT_WEIGHT_TYPE_DIFFUSE].b = pos.z;
+    }
 }
 
 void GLRenderer::setSpecular(glm::vec3 pos)
 {    
-    mModelList[mCurrMaterialIndex].weight[LIGHT_WEIGHT_TYPE_SPECULAR].r = pos.x;
-    mModelList[mCurrMaterialIndex].weight[LIGHT_WEIGHT_TYPE_SPECULAR].g = pos.y;
-    mModelList[mCurrMaterialIndex].weight[LIGHT_WEIGHT_TYPE_SPECULAR].b = pos.z;
+    for (int i = 0; i < mMaterialMap[mCurrMaterialName].size(); i++) {
+        mModelList[mMaterialMap[mCurrMaterialName][i]].weight[LIGHT_WEIGHT_TYPE_SPECULAR].r = pos.x;
+        mModelList[mMaterialMap[mCurrMaterialName][i]].weight[LIGHT_WEIGHT_TYPE_SPECULAR].g = pos.y;
+        mModelList[mMaterialMap[mCurrMaterialName][i]].weight[LIGHT_WEIGHT_TYPE_SPECULAR].b = pos.z;
+    }
 }
 
 glm::vec3 GLRenderer::getAmbient()
 {
-    return glm::vec3(mModelList[mCurrMaterialIndex].weight[LIGHT_WEIGHT_TYPE_AMBIENT].r, mModelList[mCurrMaterialIndex].weight[LIGHT_WEIGHT_TYPE_AMBIENT].g, mModelList[mCurrMaterialIndex].weight[LIGHT_WEIGHT_TYPE_AMBIENT].b);
+    return glm::vec3(mModelList[mMaterialMap[mCurrMaterialName][0]].weight[LIGHT_WEIGHT_TYPE_AMBIENT].r, mModelList[mMaterialMap[mCurrMaterialName][0]].weight[LIGHT_WEIGHT_TYPE_AMBIENT].g, mModelList[mMaterialMap[mCurrMaterialName][0]].weight[LIGHT_WEIGHT_TYPE_AMBIENT].b);
 }
 
 glm::vec3 GLRenderer::getDiffuse()
 {
-    return glm::vec3(mModelList[mCurrMaterialIndex].weight[LIGHT_WEIGHT_TYPE_DIFFUSE].r, mModelList[mCurrMaterialIndex].weight[LIGHT_WEIGHT_TYPE_DIFFUSE].g, mModelList[mCurrMaterialIndex].weight[LIGHT_WEIGHT_TYPE_DIFFUSE].b);
+    return glm::vec3(mModelList[mMaterialMap[mCurrMaterialName][0]].weight[LIGHT_WEIGHT_TYPE_DIFFUSE].r, mModelList[mMaterialMap[mCurrMaterialName][0]].weight[LIGHT_WEIGHT_TYPE_DIFFUSE].g, mModelList[mMaterialMap[mCurrMaterialName][0]].weight[LIGHT_WEIGHT_TYPE_DIFFUSE].b);
 }
 
 glm::vec3 GLRenderer::getSpecular()
 {
-    return glm::vec3(mModelList[mCurrMaterialIndex].weight[LIGHT_WEIGHT_TYPE_SPECULAR].r, mModelList[mCurrMaterialIndex].weight[LIGHT_WEIGHT_TYPE_SPECULAR].g, mModelList[mCurrMaterialIndex].weight[LIGHT_WEIGHT_TYPE_SPECULAR].b);
+    return glm::vec3(mModelList[mMaterialMap[mCurrMaterialName][0]].weight[LIGHT_WEIGHT_TYPE_SPECULAR].r, mModelList[mMaterialMap[mCurrMaterialName][0]].weight[LIGHT_WEIGHT_TYPE_SPECULAR].g, mModelList[mMaterialMap[mCurrMaterialName][0]].weight[LIGHT_WEIGHT_TYPE_SPECULAR].b);
 }
 
 void GLRenderer::setShiness(float val)
 {
-    mModelList[mCurrMaterialIndex].parameter[PHONG_PARAMETER_TYPE_SHINESS] = val;
+    for (int i = 0; i < mMaterialMap[mCurrMaterialName].size(); i++) {
+        mModelList[mMaterialMap[mCurrMaterialName][i]].parameter[PHONG_PARAMETER_TYPE_SHINESS] = val;
+    }
 }
 
 float GLRenderer::getShiness()
 {
-    return mModelList[mCurrMaterialIndex].parameter[PHONG_PARAMETER_TYPE_SHINESS];
+    return mModelList[mMaterialMap[mCurrMaterialName][0]].parameter[PHONG_PARAMETER_TYPE_SHINESS];
 }
 
-void GLRenderer::setMaterial(string materialName)
+void GLRenderer::setMaterial(string name)
 {
-    mCurrMaterialIndex = mMaterialMap[materialName];
+    mCurrMaterialName = name;
 }
 
 void GLRenderer::getMaterialList(vector<string> *materialList)
-{
-   materialList->resize(mMaterialList.size());
-   std::copy(mMaterialList.begin(), mMaterialList.end(), materialList->begin());
+{   
+    for (auto iter = mMaterialMap.begin(); iter != mMaterialMap.end(); iter++) {
+        materialList->push_back(iter->first);
+    }
 }
 

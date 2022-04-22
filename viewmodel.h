@@ -12,6 +12,7 @@ class ViewModel : public QQuickItem
     Q_OBJECT
     Q_PROPERTY(qreal swap READ swap WRITE setSwap NOTIFY swapChanged)
     Q_PROPERTY(QString logMsg READ getLogMsg WRITE setLogMsg NOTIFY logMsgChanged)
+    Q_PROPERTY(bool loadingFlag READ getLoadingFlag WRITE setLoadingFlag NOTIFY loadingFlagChanged)
 
 public:
     ViewModel();
@@ -28,6 +29,15 @@ public:
 
     QString getLogMsg() const {
         return mLogMsg;
+    }
+
+    void setLoadingFlag(bool isLoading) {
+        mIsLoading = isLoading;
+        emit loadingFlagChanged();
+    }
+
+    bool getLoadingFlag() {
+        return mIsLoading;
     }
 
     /* Invoke method */
@@ -51,12 +61,16 @@ public:
     Q_INVOKABLE qreal getShiness();
     Q_INVOKABLE void setShiness(qreal pos);
 
-    Q_INVOKABLE void setCurrentMaterial(QString materialName);
+    Q_INVOKABLE void setCurrentMaterial(QString name);
     Q_INVOKABLE QStringList getMaterialList();
+
 signals :
     void sigModelLoadded();
+    void sigMaterialChanged();
+
     void swapChanged();
     void logMsgChanged();
+    void loadingFlagChanged();
 
 public slots :
    void sync();
@@ -68,6 +82,7 @@ private slots :
 private :
     qreal mSwap;
     QString mLogMsg;
+    bool    mIsLoading;
     GLRenderer *glRenderer;
     GLSpace::Rectangle mViewport;
 };

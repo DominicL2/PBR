@@ -102,6 +102,7 @@ Rectangle {
                     id :modelRotationButton
 
                     onClickedChanged: {
+                        loadingCircle.running = true;
                         viewModel.setModelRotation(modelRotationEditor.getValue())
                     }
                 }

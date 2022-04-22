@@ -1,5 +1,6 @@
 #include "viewmodel.h"
 #include <QtQuick/qquickwindow.h>
+#include <pthread.h>
 
 ViewModel::ViewModel()
     : mSwap(0)
@@ -49,8 +50,10 @@ void ViewModel::setViewport(QVariant x, QVariant y, QVariant width, QVariant hei
 
 void ViewModel::loadGrpahicsModel(QVariant string)
 {
+    setLoadingFlag(true);
     if (glRenderer->load(string.toString().toStdString()) == GL_RENDERER_SUCCESS) {
         emit sigModelLoadded();
+        setLoadingFlag(false);
     } else {}
 }
 
@@ -149,9 +152,10 @@ void ViewModel::setShiness(qreal val)
     glRenderer->setShiness(val);
 }
 
-void ViewModel::setCurrentMaterial(QString materialName)
+void ViewModel::setCurrentMaterial(QString name)
 {
-    glRenderer->setMaterial(materialName.toStdString());
+    glRenderer->setMaterial(name.toStdString());
+    emit sigMaterialChanged();
 }
 
 QStringList ViewModel::getMaterialList()

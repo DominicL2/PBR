@@ -6,7 +6,7 @@
 #include <QQuickItem>
 #include <QSize>
 #include <vector>
-#include <unordered_map>
+#include <map>
 #include "ModelLoader.h"
 #include "gldefine.h"
 #include "pbrshader.h"
@@ -25,7 +25,6 @@ public:
     ~GLRenderer();
     int32_t init();
     int32_t load(string path);
-
     void locateLightSource(glm::vec3 pos);
     void locateViewPoint(glm::vec3 pos);
 
@@ -59,7 +58,7 @@ public:
          mModelRatation = pos;
     }
 
-    void setMaterial(string materialName);
+    void setMaterial(string name);
     void getMaterialList(vector<string> *materialList);
 
     void setAmbient(glm::vec3 pos);
@@ -77,6 +76,7 @@ public:
 
 signals:
     void sigMeshInfo(string info);
+
 public slots:
     void paint();
 
@@ -103,9 +103,8 @@ private :
     glm::vec3           mScale;
     QQuickWindow        *m_window;
 
-    vector<string>                  mMaterialList;
-    unordered_map<string, uint32_t> mMaterialMap;
-    uint32_t                        mCurrMaterialIndex;
+    map<string, vector<int>>      mMaterialMap;
+    string                      mCurrMaterialName;
 };
 
 #endif // MODEL_GLRENDER_H

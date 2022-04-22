@@ -1,4 +1,5 @@
 import QtQuick 2.6
+import QtQuick.Controls 1.4
 import PbrRender 0.5
 
 Item {
@@ -46,13 +47,24 @@ Item {
         Component.onCompleted: {
             setViewport(x, y, width, height)
         }
+        BusyIndicator {
+            id : loadingCircle
+            anchors.centerIn: parent
+            visible : true
+            running: false
+        }
     }
 
     Connections {
         id : viewModelConnector
         target :  viewModel
         onSigModelLoadded : {
+            loadingCircle.running = false
             sidePannel.setDefaultSpaceVal(viewModel.getLightPos(), viewModel.getViewPos(), viewModel.getModelRotationPos())
+            sidePannel.setMaterialList(viewModel.getMaterialList())
+            sidePannel.setMaterialParam(viewModel.getAmbient(), viewModel.getDiffuse(), viewModel.getSpecular(), viewModel.getShiness())
+        }
+        onSigMaterialChanged : {
             sidePannel.setMaterialParam(viewModel.getAmbient(), viewModel.getDiffuse(), viewModel.getSpecular(), viewModel.getShiness())
         }
     }
@@ -61,5 +73,4 @@ Item {
         id : sidePannel
         visible: true
     }
-
 }

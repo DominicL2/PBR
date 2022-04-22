@@ -4,7 +4,7 @@ import QtQuick.Controls.Styles 1.4
 
 ComboBox {
     id: box
-    currentIndex: 2
+    currentIndex: 0
     width: 200
     height : 20
     activeFocusOnPress: true
@@ -16,13 +16,20 @@ ComboBox {
             border.width: 2
             border.color: Qt.rgba(0.988, 0.988, 0.988)
             color:  Qt.rgba(0.988, 0.988, 0.988)
+            Image {
+                visible: count > 0
+                x : 200 -20
+                y : 5
+                width : 12
+                height : 10
+                smooth: true
+                source: "resource/image/down_arrow.png"
+            }
         }
         label: Text {
             verticalAlignment: Text.AlignVCenter
-            //horizontalAlignment: Text.AlignHCenter
             font.pointSize: 10
             font.family: sfPro.name
-            font.capitalization: Font.SmallCaps
             color: gBlack1
             text: control.currentText
         }
@@ -39,7 +46,7 @@ ComboBox {
                 radius: 5
             }
 
-            itemDelegate.label:             // an item text
+            itemDelegate.label:
                                             Text {
                 verticalAlignment: Text.AlignVCenter
                 horizontalAlignment: Text.AlignHCenter
@@ -50,7 +57,7 @@ ComboBox {
                 text: styleData.text
             }
 
-            itemDelegate.background: Rectangle {  // selection of an item
+            itemDelegate.background: Rectangle {
                 radius: 2
                 color: styleData.selected ? "darkGray" : "transparent"
             }

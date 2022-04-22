@@ -60,6 +60,9 @@ Rectangle {
                 SidePanelMaterialTab_ComboBox {
                     id : comboBox
                     model : comboBoxList
+                    onCurrentTextChanged: {
+                        viewModel.setCurrentMaterial(currentText)
+                    }
                 }
             }
 
