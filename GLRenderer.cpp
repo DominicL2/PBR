@@ -22,11 +22,19 @@ GLRenderer::GLRenderer()
     mViewportInfo           = GLSpace::Rectangle(0, 0, 0, 0);
 
     mCurrMaterialName = "";
+
+    mModelManager = new ModelManager();
 }
 
 GLRenderer::~GLRenderer()
 {
     init();
+
+    for (ModelData& model : mModelList) {
+        mModelManager->init(&model);
+    }
+
+    delete mModelManager;
 }
 
 void GLRenderer::setViewPortsize(GLSpace::Rectangle rect) {
@@ -77,7 +85,12 @@ int32_t GLRenderer::init()
 int32_t GLRenderer::load(string path)
 {
     int32_t ret = GL_RENDERER_FAIL;
-    mModelLoader.loadModel(path, &mModelList);
+
+    for (int i = 0; i < mModelList.size(); i ++) {
+        mModelManager->init(&mModelList[i]);
+    }
+
+    mModelManager->loadModel(path, &mModelList);
     if (mModelList.size() > 0) {
         mMaterialMap.clear();
         mCurrMaterialName = "";

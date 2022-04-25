@@ -7,7 +7,7 @@
 #include <QSize>
 #include <vector>
 #include <map>
-#include "ModelLoader.h"
+#include "ModelManager.h"
 #include "gldefine.h"
 #include "pbrshader.h"
 #include "spacedata.h"
@@ -93,7 +93,7 @@ private :
     bool mModelLoadded;
 
     SHADER_TYPE         mType;
-    ModelLoader         mModelLoader;
+    ModelManager        *mModelManager;
     vector<ModelData>   mModelList;
     GLRendererContext   mContext;
     GLSpace::SpaceInfo  mSpaceInfo;

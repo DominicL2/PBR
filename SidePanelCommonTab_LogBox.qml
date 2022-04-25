@@ -21,6 +21,7 @@ Rectangle {
             font.bold: false
             readOnly: true
             wrapMode: Text.Wrap
+            renderType: Text.NativeRendering
         }
     }
 }

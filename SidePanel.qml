@@ -17,10 +17,6 @@ Rectangle {
     border.color: gWhite1
     border.width: 2
 
-    function getPath() {
-        return commonTab.pathStr
-    }
-
     function changeLayout(pageIdx) {
         switch (pageIdx) {
         case 0 :
@@ -67,7 +63,7 @@ Rectangle {
 
             onPathStrChanged: {
                 loadingCircle.running = true
-                //viewModel.loadGrpahicsModel(pathStr)
+                viewModel.loadGrpahicsModel(pathStr)
             }
 
         }

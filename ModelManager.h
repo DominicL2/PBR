@@ -88,16 +88,19 @@ typedef struct ModelData {
     }
 } MODEL_DATA;
 
-class ModelLoader
+class ModelManager
 {
 public:
-    ModelLoader();
+    ModelManager();
+    ~ModelManager();
 
     /// Load graphic model data using assimp
     void loadModel(string path, vector<ModelData> *modelList);
 
+    /// Initialize model data
+    void init(ModelData* model);
+
 private :
-    vector<ModelData> mModelList;
     string            mDirectoryPath;
 
     GLuint getVboId(int32_t type, ModelData *modelData);

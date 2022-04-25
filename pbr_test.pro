@@ -5,8 +5,8 @@ CONFIG += c++11
 
 SOURCES += main.cpp \
     viewmodel.cpp \
-    ModelLoader.cpp \
-    GLRenderer.cpp
+    GLRenderer.cpp \
+    ModelManager.cpp
 
 RESOURCES += qml.qrc
 
@@ -18,12 +18,12 @@ include(deployment.pri)
 
 HEADERS += \
     viewmodel.h \
-    ModelLoader.h \
     GLRenderer.h \
     gldefine.h \
     pbrshader.h \
     spacedata.h \
-    debugmacro.h
+    debugmacro.h \
+    ModelManager.h
 
 unix:!macx: LIBS += -L/opt/Qt5.6.3/5.6.3/gcc_64
 unix:!macx: LIBS += -L/opt/Qt5.6.3/5.6.3/gcc_64/lib

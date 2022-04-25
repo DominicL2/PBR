@@ -1,16 +1,21 @@
-#include "ModelLoader.h"
+#include "ModelManager.h"
 #include <assimp/postprocess.h>
 #include <QDir>
 #include <string>
 #include <QPixmap>
 #include "debugmacro.h"
 
-ModelLoader::ModelLoader()
+ModelManager::ModelManager()
 {
 
 }
 
-QStringList ModelLoader::getTextureFilePath(string path)
+ModelManager::~ModelManager()
+{
+
+}
+
+QStringList ModelManager::getTextureFilePath(string path)
 {    
     QStringList textureFilePath;
     QDir directoryPath(path.c_str());
@@ -28,7 +33,7 @@ QStringList ModelLoader::getTextureFilePath(string path)
     return textureFilePath;
 }
 
-aiTextureType ModelLoader::getTextureTypeUsingFileName(string name)
+aiTextureType ModelManager::getTextureTypeUsingFileName(string name)
 {
     aiTextureType type = aiTextureType_NONE;
 
@@ -76,14 +81,14 @@ aiTextureType ModelLoader::getTextureTypeUsingFileName(string name)
     return type;
 }
 
-string ModelLoader::getBasePath(string fullPath)
+string ModelManager::getBasePath(string fullPath)
 {
     int32_t pos = fullPath.find_last_of("/") + 1;
 
     return fullPath.substr(0, pos);
 }
 
-GLuint ModelLoader::getVboId(int32_t type, ModelData *modelData)
+GLuint ModelManager::getVboId(int32_t type, ModelData *modelData)
 {
     GLuint vboId = -1;
 
@@ -118,7 +123,7 @@ GLuint ModelLoader::getVboId(int32_t type, ModelData *modelData)
     return vboId;
 }
 
-GLuint ModelLoader::getTextureId(aiString path)
+GLuint ModelManager::getTextureId(aiString path)
 {
     GLuint id           = 0U;
     QImage *srcImg = new QImage();    
@@ -136,7 +141,7 @@ GLuint ModelLoader::getTextureId(aiString path)
     return id;
 }
 
-void ModelLoader::loadTexture(aiMaterial *material, vector<GLuint> *textureId, aiTextureType type)
+void ModelManager::loadTexture(aiMaterial *material, vector<GLuint> *textureId, aiTextureType type)
 {
     for (uint32_t i = 0; i < material->GetTextureCount(type); i++) {
         aiString path;
@@ -145,7 +150,7 @@ void ModelLoader::loadTexture(aiMaterial *material, vector<GLuint> *textureId, a
     }
 }
 
-ModelData ModelLoader::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t meshIndex)
+ModelData ModelManager::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t meshIndex)
 {
     ModelData modelData;
     for (uint32_t v = 0U; v < mesh->mNumVertices; v++) {
@@ -199,7 +204,46 @@ ModelData ModelLoader::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t m
     return modelData;
 }
 
-void ModelLoader::loadModel(string path, vector<ModelData> *modelList)
+void ModelManager::init(ModelData* model) {
+    model->vertices.clear();
+    model->normals.clear();
+    model->texcoord.clear();
+    model->indices.clear();
+    model->parameter.clear();
+    model->textures.clear();
+    vector<glm::vec3>().swap(model->vertices);
+    vector<glm::vec3>().swap(model->normals);
+    vector<glm::vec2>().swap(model->texcoord);
+    vector<uint32_t>().swap(model->indices);
+    vector<float>().swap(model->parameter);
+
+    for (auto iter = model->textures.begin(); iter != model->textures.end(); iter++) {
+        for (GLuint i = 0; i < iter->second.size(); i++) {
+            glDeleteTextures(1, &iter->second[i]);
+        }
+        iter->second.clear();
+        vector<GLuint>().swap(iter->second);
+    }
+    model->textures.clear();
+    unordered_map<aiTextureType, vector<GLuint>>().swap(model->textures);
+
+    glDeleteBuffers(NUM_VBO_ID_TYPE, model->vboId);
+    for (int i = 0; i < NUM_VBO_ID_TYPE; i++) {
+        model->vboId[i] = 0U;
+    }
+    model->size.length  = glm::vec3();
+    model->size.min     = glm::vec3();
+    model->size.max     = glm::vec3();
+
+    for (int i = 0; i < NUM_LIGHT_WEIGHT_TYPE; i++) {
+        model->weight[i] = aiColor3D(0, 0, 0);
+    }
+
+    model->objectName.clear();
+    model->materialName.clear();
+}
+
+void ModelManager::loadModel(string path, vector<ModelData> *modelList)
 {
     uint i = 0U;
     uint j = 0U;
