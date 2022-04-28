@@ -22,6 +22,12 @@ Item {
     property color gRed0    : Qt.rgba(1.0, 0.270, 0.227)
     property color gRed1    : Qt.rgba(1.0, 0.231, 0.188)
     property color gOrange0 : Qt.rgba(1.0, 0.584, 0.0)
+
+    /* Shader Type */
+    property int gShader_Phong          : 0
+    property int gShader_Blinn_Phong    : 1
+    property int gShader_Cook_Torrance  : 2
+
     width: gWindowWidth
     height: gWindowHeight
 
@@ -62,10 +68,32 @@ Item {
             loadingCircle.running = false
             sidePannel.setDefaultSpaceVal(viewModel.getLightPos(), viewModel.getViewPos(), viewModel.getModelRotationPos())
             sidePannel.setMaterialList(viewModel.getMaterialList())
-            sidePannel.setMaterialParam(viewModel.getAmbient(), viewModel.getDiffuse(), viewModel.getSpecular(), viewModel.getShiness())
+
+            switch (sidePannel.getShaderType()) {
+            case gShader_Phong :
+                sidePannel.setMaterialParamForPhong(viewModel.getAmbient(), viewModel.getDiffuse(), viewModel.getSpecular(), viewModel.getShiness())
+                break;
+            case gShader_Blinn_Phong :
+                sidePannel.setMaterialParamForBlinnPhong(viewModel.getAmbient(), viewModel.getDiffuse(), viewModel.getSpecular(), viewModel.getShiness())
+                break;
+            case gShader_Cook_Torrance :
+                break;
+            }
+
         }
         onSigMaterialChanged : {
-            sidePannel.setMaterialParam(viewModel.getAmbient(), viewModel.getDiffuse(), viewModel.getSpecular(), viewModel.getShiness())
+            if (viewModel.loadded) {
+                switch (sidePannel.getShaderType()) {
+                case gShader_Phong :
+                    sidePannel.setMaterialParamForPhong(viewModel.getAmbient(), viewModel.getDiffuse(), viewModel.getSpecular(), viewModel.getShiness())
+                    break;
+                case gShader_Blinn_Phong :
+                    sidePannel.setMaterialParamForBlinnPhong(viewModel.getAmbient(), viewModel.getDiffuse(), viewModel.getSpecular(), viewModel.getShiness())
+                    break;
+                case gShader_Cook_Torrance :
+                    break;
+                }
+            }
         }
     }
 

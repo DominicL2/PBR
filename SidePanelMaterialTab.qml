@@ -1,11 +1,13 @@
 import QtQuick 2.0
+import QtQuick.Layouts 1.3
 
 Rectangle {
-    id : materialTab
+    id : materialTab_top
     color : "transparent"
 
     property int leftMargin : 25
-    property int yMargin : 30
+    property int yMargin : 20
+    property int shaderPageIndex : 0
 
     function setComboBox(list) {
         for (var i = 0; i < list.length; i++) {
@@ -13,25 +15,25 @@ Rectangle {
         }
     }
 
-    function setAmbient(pos) {
-        ambientEditor.setValue(pos.x, pos.y, pos.z)
+    function clearComboBox() {
+        comboBoxList.clear()
     }
 
-    function setDiffuse(pos) {
-        difuseEditor.setValue(pos.x, pos.y, pos.z)
+    function setMaterialParamForPhong(ambient, diffuse, specular, shiness) {
+        materialTab_phong.setAmbient(ambient)
+        materialTab_phong.setDiffuse(diffuse)
+        materialTab_phong.setSpecular(specular)
+        materialTab_phong.setShiness(shiness)
     }
 
-    function setSpecular(pos) {
-        specularEditor.setValue(pos.x, pos.y, pos.z)
+    function setMaterialParamForBlinnPhong(ambient, diffuse, specular, shiness) {
+        materialTab_blinnPhong.setAmbient(ambient)
+        materialTab_blinnPhong.setDiffuse(diffuse)
+        materialTab_blinnPhong.setSpecular(specular)
+        materialTab_blinnPhong.setShiness(shiness)
     }
-
-    function setShiness(weight) {
-        shinessEditor.setValue(weight)
-    }
-
     ListModel {
         id : comboBoxList
-
     }
 
     Rectangle {
@@ -39,8 +41,6 @@ Rectangle {
         y : yMargin
         Column {
             anchors.fill: parent
-            spacing: yMargin
-
             Row {
                 spacing : 10
                 Rectangle {
@@ -52,7 +52,7 @@ Rectangle {
                         verticalAlignment: Text.AlignVCenter
                         text: "Name"
                         font.pixelSize: 15
-                        color : gBlack2
+                        color : gBlack1
                         font.family: sfPro.name
                         font.bold: true
                     }
@@ -66,72 +66,18 @@ Rectangle {
                 }
             }
 
-            /// Ambient
-            Row {
-                spacing : 15
-                Controller3D {
-                    id : ambientEditor
-                    title: "Ambient"
-                    type: "Color"
+            StackLayout {
+                id : shaderLayout
+                anchors.fill: parent
+                currentIndex : shaderPageIndex
+                SidePanelMaterialTab_Phong {
+                    id : materialTab_phong
                 }
-                CustomButton {
-                    id :ambientButton
-
-                    onClickedChanged: {
-                        viewModel.setAmbient(ambientEditor.getValue())
-                    }
+                SidePanelMaterialTab_Phong {
+                    id : materialTab_blinnPhong
                 }
-            }
-
-            /// Difuse
-            Row {
-                spacing : 15
-                Controller3D {
-                    id : difuseEditor
-                    title: "Diffuse"
-                    type: "Color"
-                }
-                CustomButton {
-                    id :difuseButton
-
-                    onClickedChanged: {
-                        viewModel.setDiffuse(difuseEditor.getValue())
-                    }
-                }
-            }
-
-            /// Specular
-            Row {
-                spacing : 15
-                Controller3D {
-                    id : specularEditor
-                    title: "Specular"
-                    type: "Color"
-                }
-                CustomButton {
-                    id :specularButton
-
-                    onClickedChanged: {
-                        viewModel.setSpecular(specularEditor.getValue())
-                    }
-                }
-            }
-
-            /// Shiness
-            Row {
-                spacing : 15
-                Controller1D {
-                    id : shinessEditor
-                    title : "Shiness"
-                    boxName : "w"
-                }
-
-                CustomButton {
-                    id :shinessButton
-
-                    onClickedChanged: {
-                        viewModel.setShiness(shinessEditor.getValue())
-                    }
+                SidePanelMaterialTab_CookTorrance {
+                    id : materialTab_cookTorrance
                 }
             }
         }

@@ -17,34 +17,33 @@ Rectangle {
     border.color: gWhite1
     border.width: 2
 
-    function changeLayout(pageIdx) {
-        switch (pageIdx) {
-        case 0 :
-            break;
-        case 1 :
-            break;
-        }
-    }
-
     function setDefaultSpaceVal(lightPos, viewPos, modelRotation) {
         commonTab.setLightPos(lightPos)
         commonTab.setViewPos(viewPos)
         commonTab.setModelRotation(modelRotation)
     }
 
-    function setMaterialParam(ambient, diffuse, specular, shiness) {
-        materialTab.setAmbient(ambient)
-        materialTab.setDiffuse(diffuse)
-        materialTab.setSpecular(specular)
-        materialTab.setShiness(shiness)
+    function setMaterialParamForPhong(ambient, diffuse, specular, shiness) {
+        materialTab.setMaterialParamForPhong(ambient, diffuse, specular, shiness)
+    }
+
+    function setMaterialParamForBlinnPhong(ambient, diffuse, specular, shiness) {
+        materialTab.setMaterialParamForBlinnPhong(ambient, diffuse, specular, shiness)
     }
 
     function setMaterialList(list) {
         materialTab.setComboBox(list)
     }
 
+    function getShaderType() {
+        return title.shaderIndex
+    }
+
     SidePanelTitle {
         id : title
+        onShaderIndexChanged: {
+            viewModel.setShaderType(shaderIndex)
+        }
     }
 
     SidePanelTabbar {
@@ -67,8 +66,10 @@ Rectangle {
             }
 
         }
+
         SidePanelMaterialTab {
             id : materialTab
+            shaderPageIndex : title.shaderIndex
         }
     }
 }

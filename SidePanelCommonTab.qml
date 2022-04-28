@@ -28,7 +28,7 @@ Rectangle {
         id: fileDialog
         title: "Please choose a file"
         folder: "file:///home/dmlee/3d_models"
-        nameFilters: [ "3d Model files (*.obj *.fbx)", "All files (*)" ]
+        nameFilters: [ "3d Model files (*.obj *.fbx *.blend)", "All files (*)" ]
 
         onAccepted: {
             pathStr = fileUrl.toString().replace(/^(file:\/{2})/,"");

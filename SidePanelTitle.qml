@@ -5,6 +5,7 @@ Rectangle {
     property int gSidePannelTitleY : 20
     property int gSidePannelTitleWidth : 330
     property int gSidePannelTitleHeight : 35
+    property int shaderIndex : 0
 
     x : gSidePannelTitleX
     y : gSidePannelTitleY
@@ -25,21 +26,11 @@ Rectangle {
         source : "resource/image/light_icon.png"
     }
 
-    Rectangle {
-        x : 55
-        y : 0
-        width : 260
-        height : 35
-        color : "transparent"
-        Text {
-            id : titleText
-            anchors.fill: parent
-            verticalAlignment: Text.AlignVCenter
-            text : "Phong Shader"
-            color : gBlack1
-            font.family: sfPro.name
-            font.bold: true
-            font.pixelSize: 20
+    SidePanelTitle_ComboBox {
+        id : titleComboBox
+        currentIndex: shaderIndex
+        onCurrentIndexChanged: {
+           shaderIndex = currentIndex
         }
     }
 }
