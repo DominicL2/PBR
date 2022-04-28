@@ -11,8 +11,11 @@
         <file>Editor3D.qml</file>
         <file>Controller3D.qml</file>
         <file>Controller1D.qml</file>
-        <file>SidePanelMaterialTab.qml</file>
         <file>SidePanelMaterialTab_ComboBox.qml</file>
+        <file>SidePanelMaterialTab_Phong.qml</file>
+        <file>SidePanelMaterialTab_CookTorrance.qml</file>
+        <file>SidePanelTitle_ComboBox.qml</file>
+        <file>SidePanelMaterialTab.qml</file>
     </qresource>
     <qresource prefix="/resource">
         <file>image/light_icon.png</file>

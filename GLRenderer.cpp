@@ -1,5 +1,6 @@
 #include "GLRenderer.h"
 #include "debugmacro.h"
+#include "primitiveshader.h"
 #include <iostream>
 #include <sstream>
 
@@ -14,7 +15,7 @@ GLRenderer::GLRenderer()
         qDebug("[%s][%s:%d]", __FILE__, __func__, __LINE__);
         mSpaceInfo.fov = 100.f;
     }
-
+    mIsContextSwitching = false;
     mModelLoadded = false;
 
     mSpaceInfo.viewPoint    = glm::vec3(GL_SPACE_DEFUALT_VIEW_POINT_POS_X, GL_SPACE_DEFUALT_VIEW_POINT_POS_Y, GL_SPACE_DEFUALT_VIEW_POINT_POS_Z);
@@ -23,6 +24,31 @@ GLRenderer::GLRenderer()
 
     mCurrMaterialName = "";
 
+    mAxisLine[0].start.x = 0.f;
+    mAxisLine[0].start.y = 0.f;
+    mAxisLine[0].start.z = 0.f;
+
+    mAxisLine[0].end.x = GL_SPACE_AXIS_LINE_LENGTH;
+    mAxisLine[0].end.y = 0.f;
+    mAxisLine[0].end.z = 0.f;
+
+    mAxisLine[1].start.x = 0.f;
+    mAxisLine[1].start.y = 0.f;
+    mAxisLine[1].start.z = 0.f;
+
+    mAxisLine[1].end.x = 0.f;
+    mAxisLine[1].end.y = GL_SPACE_AXIS_LINE_LENGTH;
+    mAxisLine[1].end.z = 0.f;
+
+    mAxisLine[2].start.x = 0.f;
+    mAxisLine[2].start.y = 0.f;
+    mAxisLine[2].start.z = 0.f;
+
+    mAxisLine[2].end.x = 0.f;
+    mAxisLine[2].end.y = 0.f;
+    mAxisLine[2].end.z = GL_SPACE_AXIS_LINE_LENGTH;
+
+    createmPrimitiveContext();
     mModelManager = new ModelManager();
 }
 
@@ -77,6 +103,7 @@ int32_t GLRenderer::init()
 
         mContext.program = 0U;
         mContextCreated = false;
+        ret = GL_RENDERER_SUCCESS;
     } else {}
 
     return ret;
@@ -104,8 +131,6 @@ int32_t GLRenderer::load(string path)
     log << "[Info] ToTal Mesh : " << mModelList.size() << endl;
 
     for (size_t i = 0; i < mModelList.size(); i++) {
-        mModelList[i].parameter.resize(NUM_PHONG_PARAMETER_TYPE);
-        mModelList[i].parameter[PHONG_PARAMETER_TYPE_SHINESS] = 1.0;        
         mMaterialMap[mModelList[i].materialName].push_back(i);
         mLengthAll.x = mModelList[i].size.length.x > mLengthAll.x ? mModelList[i].size.length.x :  mLengthAll.x;
         mLengthAll.y = mModelList[i].size.length.y > mLengthAll.y ? mModelList[i].size.length.y :  mLengthAll.y;
@@ -128,7 +153,6 @@ int32_t GLRenderer::load(string path)
     mScale.x = mLengthAll.x / minLength;
     mScale.y = mLengthAll.y / minLength;
     mScale.z = mLengthAll.z / minLength;
-
     emit sigMeshInfo(log.str());
     return ret;
 }
@@ -152,6 +176,7 @@ int32_t GLRenderer::registerAttribute(SHADER_TYPE type)
 
     switch (type) {
     case SHADER_TYPE_PHONG :
+    case SHADER_TYPE_BLINN_PHONG :
         attributeId = glGetAttribLocation(mContext.program, "a_position");
         if (attributeId >= 0) {
             mContext.attribute.push_back(attributeId);
@@ -160,6 +185,20 @@ int32_t GLRenderer::registerAttribute(SHADER_TYPE type)
         }
 
         attributeId = glGetAttribLocation(mContext.program, "a_normal");
+        if (attributeId >= 0) {
+            mContext.attribute.push_back(attributeId);
+        } else {
+            break;
+        }
+
+        attributeId = glGetAttribLocation(mContext.program, "a_tangent");
+        if (attributeId >= 0) {
+            mContext.attribute.push_back(attributeId);
+        } else {
+            break;
+        }
+
+        attributeId = glGetAttribLocation(mContext.program, "a_biTangent");
         if (attributeId >= 0) {
             mContext.attribute.push_back(attributeId);
         } else {
@@ -175,7 +214,7 @@ int32_t GLRenderer::registerAttribute(SHADER_TYPE type)
 
         ret = GL_RENDERER_SUCCESS;
         break;
-    case SHADER_TYPE_BRDF :
+    case SHADER_TYPE_COOK_TORRNACE :
         break;
     default:
         break;
@@ -193,6 +232,7 @@ int32_t GLRenderer::registerUniform(SHADER_TYPE type)
 
     switch (type) {
     case SHADER_TYPE_PHONG :
+    case SHADER_TYPE_BLINN_PHONG :
         uniformId = glGetUniformLocation(mContext.program, "u_mvp");
         if (uniformId >= 0) {
             mContext.uniform.push_back(uniformId);
@@ -255,9 +295,26 @@ int32_t GLRenderer::registerUniform(SHADER_TYPE type)
         } else {
             break;
         }
+
+        uniformId = glGetUniformLocation(mContext.program, "texAlbedo");
+        glUniform1i(uniformId, 0);
+        if (uniformId >= 0) {
+            mContext.uniform.push_back(uniformId);
+        } else {
+            break;
+        }
+
+        uniformId = glGetUniformLocation(mContext.program, "texNormalMap");
+        glUniform1i(uniformId, 0);
+        if (uniformId >= 0) {
+            mContext.uniform.push_back(uniformId);
+        } else {
+            break;
+        }
+
         ret = GL_RENDERER_SUCCESS;
         break;
-    case SHADER_TYPE_BRDF :
+    case SHADER_TYPE_COOK_TORRNACE :
         break;
     default:
         break;
@@ -286,22 +343,44 @@ void GLRenderer::checkShaderError(GLuint shader, GLuint flag, bool isProgram, co
     }
 }
 
-int32_t GLRenderer::connectShader2Program()
+int32_t GLRenderer::connectShader2Program(GLRendererContext *context)
 {
     int32_t ret = GL_RENDERER_SUCCESS;
 
-    if (mContext.shader[GLES_SHADER_TYPE_VERTEX] <= 0 || mContext.shader[GLES_SHADER_TYPE_FRAGMENT] <= 0) {
+    if (context->shader[GLES_SHADER_TYPE_VERTEX] <= 0 || context->shader[GLES_SHADER_TYPE_FRAGMENT] <= 0) {
         ret = GL_RENDERER_FAIL;
         return ret;
     } else {}    
 
-    glAttachShader(mContext.program, mContext.shader[GLES_SHADER_TYPE_VERTEX]);
-    glAttachShader(mContext.program, mContext.shader[GLES_SHADER_TYPE_FRAGMENT]);
+    glAttachShader(context->program, context->shader[GLES_SHADER_TYPE_VERTEX]);
+    glAttachShader(context->program, context->shader[GLES_SHADER_TYPE_FRAGMENT]);
 
-    glLinkProgram(mContext.program);
-    checkShaderError(mContext.program, GL_LINK_STATUS, true, "Invalid Program");
-    checkShaderError(mContext.program, GL_LINK_STATUS, false, "Invalid Shader");
-    glValidateProgram(mContext.program);
+    glLinkProgram(context->program);
+    checkShaderError(context->program, GL_LINK_STATUS, true, "Invalid Program");
+    checkShaderError(context->program, GL_LINK_STATUS, false, "Invalid Shader");
+    glValidateProgram(context->program);
+    return ret;
+}
+
+int32_t GLRenderer::createmPrimitiveContext()
+{
+    int32_t ret = GL_RENDERER_FAIL;
+    mPrimitiveContext.program = glCreateProgram();
+    mPrimitiveContext.shader[GLES_SHADER_TYPE_VERTEX]   = registerShader(VERTEX_SHADER_PRIMITIVE_STR, GL_VERTEX_SHADER);
+    mPrimitiveContext.shader[GLES_SHADER_TYPE_FRAGMENT] = registerShader(FRAGMENT_SHADER_PRIMITIVE_STR, GL_FRAGMENT_SHADER);
+
+    if (connectShader2Program(&mPrimitiveContext) == GL_RENDERER_SUCCESS) {
+        GLuint id = glGetAttribLocation(mPrimitiveContext.program, "a_position");
+        if (id >= 0) {
+            mPrimitiveContext.attribute.push_back(id);
+            id = glGetUniformLocation(mPrimitiveContext.program, "u_mvp");
+            mPrimitiveContext.uniform.push_back(id);
+            id = glGetUniformLocation(mPrimitiveContext.program, "u_color");
+            mPrimitiveContext.uniform.push_back(id);
+        }
+
+    } else {}
+
     return ret;
 }
 
@@ -318,12 +397,13 @@ int32_t GLRenderer::createContext()
     } else {}
     switch (mType) {
     case SHADER_TYPE_PHONG :
-        mContext.shader[GLES_SHADER_TYPE_VERTEX]    = registerShader(VERTEX_SHADER_BLINN_PHONG_STR, GL_VERTEX_SHADER);
-        mContext.shader[GLES_SHADER_TYPE_FRAGMENT]  = registerShader(FRAGMENT_SHADER_BLINN_PHONG_STR, GL_FRAGMENT_SHADER);
+    case SHADER_TYPE_BLINN_PHONG :
+        mContext.shader[GLES_SHADER_TYPE_VERTEX]    = registerShader(mType == SHADER_TYPE_PHONG? VERTEX_SHADER_PHONG_STR : VERTEX_SHADER_BLINN_PHONG_STR, GL_VERTEX_SHADER);
+        mContext.shader[GLES_SHADER_TYPE_FRAGMENT]  = registerShader(mType == SHADER_TYPE_PHONG? FRAGMENT_SHADER_PHONG_STR : FRAGMENT_SHADER_BLINN_PHONG_STR, GL_FRAGMENT_SHADER);
 
         qDebug("Program(%d)", mContext.program);
         qDebug("Shader V(%d) F(%d)", mContext.shader[GLES_SHADER_TYPE_VERTEX], mContext.shader[GLES_SHADER_TYPE_FRAGMENT]);
-        if (connectShader2Program() == GL_RENDERER_FAIL) {
+        if (connectShader2Program(&mContext) == GL_RENDERER_FAIL) {
             break;
         } else {}
         if (registerAttribute(SHADER_TYPE_PHONG) == GL_RENDERER_SUCCESS) {
@@ -334,7 +414,7 @@ int32_t GLRenderer::createContext()
             init();
         }
         break;
-    case SHADER_TYPE_BRDF :
+    case SHADER_TYPE_COOK_TORRNACE :
         break;
     default:
         break;
@@ -344,6 +424,46 @@ int32_t GLRenderer::createContext()
         mContextCreated = true;
     }
     return ret;
+}
+void GLRenderer::drawAxis()
+{
+    if ((mViewportInfo.x == 0) &&  (mViewportInfo.width == 0) &&
+        (mViewportInfo.y == 0) &&  (mViewportInfo.height == 0)) {
+        return;
+    }
+    glm::vec3 color[3];
+    color[0] = glm::vec3(1.0, 0.231, 0.188);
+    color[1] = glm::vec3(0.203, 0.78, 0.349);
+    color[2] = glm::vec3(0.039, 0.517, 1.0);
+
+    glViewport(mViewportInfo.x, mViewportInfo.y , mViewportInfo.width, mViewportInfo.height);
+
+    glm::mat4 mvpMatrix         = glm::mat4(1.0f);
+    glm::mat4 viewMatrix        = glm::mat4(1.0f);
+    glm::mat4 projectionMatrix  = glm::mat4(1.0f);
+    glm::mat4 modelMatrix       = glm::mat4(1.0f);
+
+    float ratio = (float)mViewportInfo.width /  (float)mViewportInfo.height;
+    projectionMatrix = glm::perspective(glm::radians(mSpaceInfo.fov), ratio, 0.1f, GL_SPACE_DEFUALT_MAX_DISTANCE);
+    viewMatrix = glm::lookAt(mSpaceInfo.viewPoint, glm::vec3(0,
+                                                             0,
+                                                             0), GLSpace::getUpVector());
+
+    mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
+    for (int i = 0; i < 3; i++) {
+        glVertexAttribPointer(mPrimitiveContext.attribute[0], 3, GL_FLOAT, GL_FALSE, 0, (const float *)&mAxisLine[i]);
+        glEnableVertexAttribArray(mPrimitiveContext.attribute[0]);
+        glUniformMatrix4fv(mPrimitiveContext.uniform[0], 1, GL_FALSE, (const float *)&mvpMatrix[0][0]);
+
+        glUniform3f(mPrimitiveContext.uniform[1],
+                     color[i].x,
+                     color[i].y,
+                     color[i].z );
+
+        glDrawArrays(GL_LINES, 0, 2);
+
+        glDisableVertexAttribArray(mPrimitiveContext.attribute[0]);
+    }
 }
 
 void GLRenderer::draw(const ModelData *modelData)
@@ -360,7 +480,8 @@ void GLRenderer::draw(const ModelData *modelData)
     glm::mat4 viewMatrix        = glm::mat4(1.0f);
     glm::mat4 projectionMatrix  = glm::mat4(1.0f);
 
-    float ratio = (float)mViewportInfo.width /  (float)mViewportInfo.height;   projectionMatrix = glm::perspective(glm::radians(mSpaceInfo.fov), ratio, 0.1f, GL_SPACE_DEFUALT_MAX_DISTANCE);
+    float ratio = (float)mViewportInfo.width /  (float)mViewportInfo.height;
+    projectionMatrix = glm::perspective(glm::radians(mSpaceInfo.fov), ratio, 0.1f, GL_SPACE_DEFUALT_MAX_DISTANCE);
     viewMatrix = glm::lookAt(mSpaceInfo.viewPoint, glm::vec3(0,
                                                              0,
                                                              0), GLSpace::getUpVector());
@@ -374,7 +495,6 @@ void GLRenderer::draw(const ModelData *modelData)
     mvMatrix = viewMatrix * modelMatrix;
 
     // Upate Uniform
-
     glUniform1f(mContext.uniform[PHONG_SHADER_UNIFORM_SHINESS], modelData->parameter[PHONG_PARAMETER_TYPE_SHINESS]);
 
     glUniformMatrix4fv(mContext.uniform[PHONG_SHADER_UNIFORM_MVP], 1, GL_FALSE, (const float *)&mvpMatrix[0][0]);
@@ -399,12 +519,20 @@ void GLRenderer::draw(const ModelData *modelData)
                 modelData->weight[LIGHT_WEIGHT_TYPE_SPECULAR].b );
 
     glBindBuffer(GL_ARRAY_BUFFER, modelData->vboId[VBO_ID_TYPE_VERTEX]);
-    glVertexAttribPointer(mContext.attribute[PHONG_SHADER_ATTR_POSTION], 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
-    glEnableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_POSTION]);
+    glVertexAttribPointer(mContext.attribute[PHONG_SHADER_ATTR_VERTEX], 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_VERTEX]);
 
     glBindBuffer(GL_ARRAY_BUFFER, modelData->vboId[VBO_ID_TYPE_NORMAL]);
     glVertexAttribPointer(mContext.attribute[PHONG_SHADER_ATTR_NORMAL], 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
     glEnableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_NORMAL]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, modelData->vboId[VBO_ID_TYPE_TANGENT]);
+    glVertexAttribPointer(mContext.attribute[PHONG_SHADER_ATTR_TANGENT], 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_TANGENT]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, modelData->vboId[VBO_ID_TYPE_BITANGENT]);
+    glVertexAttribPointer(mContext.attribute[PHONG_SHADER_ATTR_BITANGENT], 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_BITANGENT]);
 
     glBindBuffer(GL_ARRAY_BUFFER, modelData->vboId[VBO_ID_TYPE_TEXCOORD]);
     glVertexAttribPointer(mContext.attribute[PHONG_SHADER_ATTR_TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void*)0);
@@ -412,15 +540,24 @@ void GLRenderer::draw(const ModelData *modelData)
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, modelData->vboId[VBO_ID_TYPE_INDEX]);
 
+    int textureIndex = 0;
     auto baseColor = modelData->textures.find(aiTextureType_DIFFUSE);
     glm::vec3 defaultColor = glm::vec3(0.0, 0.0, 0.0);
     if (baseColor->second.size() > 0U) {
-        for (size_t i = 0; i < baseColor->second.size(); i++) {
-            glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, baseColor->second[i]);
+        for (textureIndex = 0; textureIndex < baseColor->second.size(); textureIndex++) {
+            glActiveTexture(GL_TEXTURE0 + textureIndex);
+            glBindTexture(GL_TEXTURE_2D, baseColor->second[textureIndex]);
         }
     } else {
         defaultColor = glm::vec3(0.55, 0.55, 0.55);
+    }
+
+    auto normalMap = modelData->textures.find(aiTextureType_NORMALS);
+    if (normalMap->second.size() > 0U) {
+        for (;textureIndex < normalMap->second.size(); textureIndex++) {
+            glActiveTexture(GL_TEXTURE0 + textureIndex);
+            glBindTexture(GL_TEXTURE_2D, normalMap->second[textureIndex]);
+        }
     }
 
     glUniform3f(mContext.uniform[PHONG_SHADER_UNIFORM_DEFAULT_COLOR],
@@ -430,7 +567,7 @@ void GLRenderer::draw(const ModelData *modelData)
 
     glDrawElements(GL_TRIANGLES, modelData->indices.size(), GL_UNSIGNED_INT, 0);
 
-    glDisableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_POSTION]);
+    glDisableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_VERTEX]);
     glDisableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_NORMAL]);
     glDisableVertexAttribArray(mContext.attribute[VBO_ID_TYPE_TEXCOORD]);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -448,8 +585,7 @@ void GLRenderer::setLoadded(bool loadded)
 
 void GLRenderer::paint()
 {
-    if (mModelLoadded  && isLoadded()) {
-        glUseProgram(mContext.program);
+    if (mModelLoadded  && isLoadded() && !mIsContextSwitching) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.085f, 0.095f, 0.085f, 0.f);
 
@@ -458,6 +594,11 @@ void GLRenderer::paint()
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
 
+
+        glUseProgram(mPrimitiveContext.program);
+        drawAxis();
+
+        glUseProgram(mContext.program);
         for (const auto& modelData : mModelList) {
             draw(&modelData);
         }
@@ -473,7 +614,7 @@ void GLRenderer::paint()
 
 void GLRenderer::setAmbient(glm::vec3 pos)
 {
-    for (int i = 0; i < mMaterialMap[mCurrMaterialName].size(); i++) {
+    for (size_t i = 0; i < mMaterialMap[mCurrMaterialName].size(); i++) {
         mModelList[mMaterialMap[mCurrMaterialName][i]].weight[LIGHT_WEIGHT_TYPE_AMBIENT].r = pos.x;
         mModelList[mMaterialMap[mCurrMaterialName][i]].weight[LIGHT_WEIGHT_TYPE_AMBIENT].g = pos.y;
         mModelList[mMaterialMap[mCurrMaterialName][i]].weight[LIGHT_WEIGHT_TYPE_AMBIENT].b = pos.z;
@@ -482,7 +623,7 @@ void GLRenderer::setAmbient(glm::vec3 pos)
 
 void GLRenderer::setDiffuse(glm::vec3 pos)
 {
-    for (int i = 0; i < mMaterialMap[mCurrMaterialName].size(); i++) {
+    for (size_t i = 0; i < mMaterialMap[mCurrMaterialName].size(); i++) {
         mModelList[mMaterialMap[mCurrMaterialName][i]].weight[LIGHT_WEIGHT_TYPE_DIFFUSE].r = pos.x;
         mModelList[mMaterialMap[mCurrMaterialName][i]].weight[LIGHT_WEIGHT_TYPE_DIFFUSE].g = pos.y;
         mModelList[mMaterialMap[mCurrMaterialName][i]].weight[LIGHT_WEIGHT_TYPE_DIFFUSE].b = pos.z;
@@ -491,7 +632,7 @@ void GLRenderer::setDiffuse(glm::vec3 pos)
 
 void GLRenderer::setSpecular(glm::vec3 pos)
 {    
-    for (int i = 0; i < mMaterialMap[mCurrMaterialName].size(); i++) {
+    for (size_t i = 0; i < mMaterialMap[mCurrMaterialName].size(); i++) {
         mModelList[mMaterialMap[mCurrMaterialName][i]].weight[LIGHT_WEIGHT_TYPE_SPECULAR].r = pos.x;
         mModelList[mMaterialMap[mCurrMaterialName][i]].weight[LIGHT_WEIGHT_TYPE_SPECULAR].g = pos.y;
         mModelList[mMaterialMap[mCurrMaterialName][i]].weight[LIGHT_WEIGHT_TYPE_SPECULAR].b = pos.z;
@@ -515,7 +656,7 @@ glm::vec3 GLRenderer::getSpecular()
 
 void GLRenderer::setShiness(float val)
 {
-    for (int i = 0; i < mMaterialMap[mCurrMaterialName].size(); i++) {
+    for (size_t i = 0; i < mMaterialMap[mCurrMaterialName].size(); i++) {
         mModelList[mMaterialMap[mCurrMaterialName][i]].parameter[PHONG_PARAMETER_TYPE_SHINESS] = val;
     }
 }
@@ -537,3 +678,20 @@ void GLRenderer::getMaterialList(vector<string> *materialList)
     }
 }
 
+void GLRenderer::setShdaerType(SHADER_TYPE type)
+{
+    if ((SHADER_TYPE_PHONG <= type && type < NUM_SHADER_TYPE) && type != mType) {
+        mIsContextSwitching = true;
+        mType = type;
+        if (init() == GL_RENDERER_SUCCESS) {
+            if (createContext() == GL_RENDERER_SUCCESS) {
+
+            } else {
+                qDebug("[%d][%s] Fail to context creation", __LINE__, __func__);
+            }
+        } else {
+            qDebug("[%d][%s] Fail to context intialization", __LINE__, __func__);
+        }
+        mIsContextSwitching = false;
+    }
+}

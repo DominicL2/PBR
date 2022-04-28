@@ -23,7 +23,8 @@ HEADERS += \
     pbrshader.h \
     spacedata.h \
     debugmacro.h \
-    ModelManager.h
+    ModelManager.h \
+    primitiveshader.h
 
 unix:!macx: LIBS += -L/opt/Qt5.6.3/5.6.3/gcc_64
 unix:!macx: LIBS += -L/opt/Qt5.6.3/5.6.3/gcc_64/lib

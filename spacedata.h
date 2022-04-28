@@ -7,14 +7,15 @@
 ///
 #define GL_SPACE_DEFUALT_MAX_DISTANCE (10.f)
 
-#define GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_X (-1.0)
-#define GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_Y (2.1)
-#define GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_Z (1.0)
+#define GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_X (0.0)
+#define GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_Y (0.0)
+#define GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_Z (2.0)
 
 #define GL_SPACE_DEFUALT_VIEW_POINT_POS_X (0)
-#define GL_SPACE_DEFUALT_VIEW_POINT_POS_Y (0.0)
+#define GL_SPACE_DEFUALT_VIEW_POINT_POS_Y (0.8)
 #define GL_SPACE_DEFUALT_VIEW_POINT_POS_Z (1.5)
 
+#define GL_SPACE_AXIS_LINE_LENGTH (5.0)
 
 namespace GLSpace {
     typedef struct {
@@ -31,6 +32,11 @@ namespace GLSpace {
         GLSpace::SurfaceOfVolume far;
         float fov;
     } SpaceInfo;
+
+    typedef struct {
+        glm::vec3 start;
+        glm::vec3 end;
+    } Line;
 
    class Rectangle
    {

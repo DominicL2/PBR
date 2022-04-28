@@ -25,6 +25,12 @@ public:
     ~GLRenderer();
     int32_t init();
     int32_t load(string path);
+
+    bool isLoadded() {
+        return mContextCreated;
+    }
+
+    /// Set common option
     void locateLightSource(glm::vec3 pos);
     void locateViewPoint(glm::vec3 pos);
 
@@ -34,9 +40,6 @@ public:
         m_window = window;
     }
 
-    bool isLoadded() {
-        return mContextCreated;
-    }
 
     inline glm::vec3 getViewPos() {
         return mSpaceInfo.viewPoint;
@@ -58,6 +61,7 @@ public:
          mModelRatation = pos;
     }
 
+    /// Set material parameter
     void setMaterial(string name);
     void getMaterialList(vector<string> *materialList);
 
@@ -74,6 +78,9 @@ public:
     bool loadded() const;
     void setLoadded(bool loadded);
 
+    /// choose shader type
+    void setShdaerType(SHADER_TYPE type);
+
 signals:
     void sigMeshInfo(string info);
 
@@ -82,26 +89,31 @@ public slots:
 
 private :
     GLuint registerShader(const string text, uint32_t type);
-    int32_t connectShader2Program();
+    int32_t connectShader2Program(GLRendererContext *context);
     int32_t registerAttribute(SHADER_TYPE type);
     int32_t registerUniform(SHADER_TYPE type);
     int32_t createContext();
+    int32_t createmPrimitiveContext();
     void checkShaderError(GLuint shader, GLuint flag, bool isProgram, const string &errMsg);
     void draw(const ModelData *modelData);
-
+    void drawAxis();
     bool mContextCreated;
     bool mModelLoadded;
+    bool mIsContextSwitching;
 
     SHADER_TYPE         mType;
     ModelManager        *mModelManager;
     vector<ModelData>   mModelList;
     GLRendererContext   mContext;
+    GLRendererContext   mPrimitiveContext;
     GLSpace::SpaceInfo  mSpaceInfo;
     GLSpace::Rectangle  mViewportInfo;
     glm::vec3           mModelRatation;
     glm::vec3           mLengthAll;
     glm::vec3           mScale;
     QQuickWindow        *m_window;
+
+    GLSpace::Line  mAxisLine[3];
 
     map<string, vector<int>>      mMaterialMap;
     string                      mCurrMaterialName;

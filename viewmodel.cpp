@@ -6,6 +6,7 @@ ViewModel::ViewModel()
     : mSwap(0)
 {
     connect(this, &QQuickItem::windowChanged, this, &ViewModel::handleWindowChanged);
+    setLoadded(false);
 }
 
 ViewModel::~ViewModel()
@@ -50,10 +51,9 @@ void ViewModel::setViewport(QVariant x, QVariant y, QVariant width, QVariant hei
 
 void ViewModel::loadGrpahicsModel(QVariant string)
 {
-    setLoadingFlag(true);
     if (glRenderer->load(string.toString().toStdString()) == GL_RENDERER_SUCCESS) {
         emit sigModelLoadded();
-        setLoadingFlag(false);
+        setLoadded(true);
     } else {}
 }
 
@@ -177,4 +177,10 @@ qreal ViewModel::getShiness()
 void ViewModel::printMeshInfo(string info) {
     QString str = QString::fromStdString(info);
     setLogMsg(str);
+}
+
+void ViewModel::setShaderType(int type)
+{
+    glRenderer->setShdaerType((SHADER_TYPE)type);
+    emit sigMaterialChanged();
 }

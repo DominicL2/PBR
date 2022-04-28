@@ -29,6 +29,8 @@ typedef enum {
 typedef enum {
     VBO_ID_TYPE_VERTEX = 0,
     VBO_ID_TYPE_NORMAL,
+    VBO_ID_TYPE_TANGENT,
+    VBO_ID_TYPE_BITANGENT,
     VBO_ID_TYPE_TEXCOORD,
     VBO_ID_TYPE_INDEX,
     NUM_VBO_ID_TYPE
@@ -58,6 +60,8 @@ typedef struct MODEL_SIZE{
 typedef struct ModelData {
     vector<glm::vec3> vertices;
     vector<glm::vec3> normals;
+    vector<glm::vec3> tangents;
+    vector<glm::vec3> biTangents;
     vector<uint32_t> indices;
     vector<glm::vec2> texcoord;
     string objectName;
@@ -70,12 +74,16 @@ typedef struct ModelData {
     ModelData() {
         vertices.clear();
         normals.clear();
+        tangents.clear();
+        biTangents.clear();
         indices.clear();
         texcoord.clear();
         textures.clear();
         parameter.clear();
         vector<glm::vec3>().swap(vertices);
         vector<glm::vec3>().swap(normals);
+        vector<glm::vec3>().swap(tangents);
+        vector<glm::vec3>().swap(biTangents);
         vector<uint32_t>().swap(indices);
         vector<glm::vec2>().swap(texcoord);
         vector<float>().swap(parameter);

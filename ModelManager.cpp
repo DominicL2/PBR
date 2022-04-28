@@ -105,6 +105,16 @@ GLuint ModelManager::getVboId(int32_t type, ModelData *modelData)
         glBufferData(GL_ARRAY_BUFFER, modelData->normals.size() * sizeof(glm::vec3), &modelData->normals[0], GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER,0);
         break;
+    case VBO_ID_TYPE_TANGENT :
+        glBindBuffer(GL_ARRAY_BUFFER, vboId);
+        glBufferData(GL_ARRAY_BUFFER, modelData->tangents.size() * sizeof(glm::vec3), &modelData->tangents[0], GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER,0);
+        break;
+    case VBO_ID_TYPE_BITANGENT :
+        glBindBuffer(GL_ARRAY_BUFFER, vboId);
+        glBufferData(GL_ARRAY_BUFFER, modelData->biTangents.size() * sizeof(glm::vec3), &modelData->biTangents[0], GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER,0);
+        break;
     case VBO_ID_TYPE_TEXCOORD :
         glBindBuffer(GL_ARRAY_BUFFER, vboId);
         glBufferData(GL_ARRAY_BUFFER, modelData->texcoord.size() * sizeof(modelData->texcoord[0]), &modelData->texcoord[0], GL_STATIC_DRAW);
@@ -128,6 +138,7 @@ GLuint ModelManager::getTextureId(aiString path)
     GLuint id           = 0U;
     QImage *srcImg = new QImage();    
     srcImg->load((mDirectoryPath + "texture/" + path.C_Str()).c_str());
+    qDebug("Texture : %s", (mDirectoryPath + "texture/" + path.C_Str()).c_str());
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, srcImg->width(), srcImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, srcImg->bits());
@@ -157,9 +168,9 @@ ModelData ModelManager::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t 
         modelData.size.max.x = (mesh->mVertices[v].x > modelData.size.max.x) ? mesh->mVertices[v].x : modelData.size.max.x;
         modelData.size.max.y = (mesh->mVertices[v].y > modelData.size.max.y) ? mesh->mVertices[v].y  : modelData.size.max.y;
         modelData.size.max.z = (mesh->mVertices[v].z > modelData.size.max.z) ? mesh->mVertices[v].z : modelData.size.max.z;
-        modelData.size.min.x = (mesh->mVertices[v].x  < modelData.size.min.x) ? mesh->mVertices[v].x : modelData.size.min.x;
-        modelData.size.min.y = (mesh->mVertices[v].y  < modelData.size.min.y) ? mesh->mVertices[v].y  : modelData.size.min.y;
-        modelData.size.min.z = (mesh->mVertices[v].z  < modelData.size.min.z) ? mesh->mVertices[v].z  : modelData.size.min.z;
+        modelData.size.min.x = (mesh->mVertices[v].x < modelData.size.min.x) ? mesh->mVertices[v].x : modelData.size.min.x;
+        modelData.size.min.y = (mesh->mVertices[v].y < modelData.size.min.y) ? mesh->mVertices[v].y  : modelData.size.min.y;
+        modelData.size.min.z = (mesh->mVertices[v].z < modelData.size.min.z) ? mesh->mVertices[v].z  : modelData.size.min.z;
 
         modelData.vertices.push_back(glm::vec3(     mesh->mVertices[v].x,
                                                     mesh->mVertices[v].y,
@@ -167,6 +178,14 @@ ModelData ModelManager::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t 
         modelData.normals.push_back(glm::vec3(      mesh->mNormals[v].x,
                                                     mesh->mNormals[v].y,
                                                     mesh->mNormals[v].z));
+
+       modelData.tangents.push_back(glm::vec3(      mesh->mTangents[v].x,
+                                                    mesh->mTangents[v].y,
+                                                    mesh->mTangents[v].z));
+
+       modelData.biTangents.push_back(glm::vec3(    mesh->mBitangents[v].x,
+                                                    mesh->mBitangents[v].y,
+                                                    mesh->mBitangents[v].z));
 
         if (mesh->HasTextureCoords(meshIndex)) {
             modelData.texcoord.push_back(glm::vec2(     mesh->mTextureCoords[0][v].x,
@@ -185,10 +204,12 @@ ModelData ModelManager::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t 
         }
     }
 
-    modelData.vboId[VBO_ID_TYPE_VERTEX]     =  getVboId(VBO_ID_TYPE_VERTEX, &modelData);
-    modelData.vboId[VBO_ID_TYPE_NORMAL]     =  getVboId(VBO_ID_TYPE_NORMAL, &modelData);
-    modelData.vboId[VBO_ID_TYPE_TEXCOORD]   =  getVboId(VBO_ID_TYPE_TEXCOORD, &modelData);
-    modelData.vboId[VBO_ID_TYPE_INDEX]      =  getVboId(VBO_ID_TYPE_INDEX, &modelData);
+    modelData.vboId[VBO_ID_TYPE_VERTEX]     =  getVboId(VBO_ID_TYPE_VERTEX,     &modelData);
+    modelData.vboId[VBO_ID_TYPE_NORMAL]     =  getVboId(VBO_ID_TYPE_NORMAL,     &modelData);
+    modelData.vboId[VBO_ID_TYPE_TEXCOORD]   =  getVboId(VBO_ID_TYPE_TEXCOORD,   &modelData);
+    modelData.vboId[VBO_ID_TYPE_INDEX]      =  getVboId(VBO_ID_TYPE_INDEX,      &modelData);
+    modelData.vboId[VBO_ID_TYPE_TANGENT]    =  getVboId(VBO_ID_TYPE_TANGENT,    &modelData);
+    modelData.vboId[VBO_ID_TYPE_BITANGENT]  =  getVboId(VBO_ID_TYPE_BITANGENT,  &modelData);
 
     if (mesh->mMaterialIndex >= 0U) {
         aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
@@ -196,9 +217,12 @@ ModelData ModelManager::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t 
         material->Get(AI_MATKEY_COLOR_AMBIENT, modelData.weight[LIGHT_WEIGHT_TYPE_AMBIENT]);
         material->Get(AI_MATKEY_COLOR_DIFFUSE, modelData.weight[LIGHT_WEIGHT_TYPE_DIFFUSE]);
         material->Get(AI_MATKEY_COLOR_SPECULAR, modelData.weight[LIGHT_WEIGHT_TYPE_SPECULAR]);
-
+        float shiness = 0.0;
+        material->Get(AI_MATKEY_SHININESS, shiness);
+        modelData.parameter.push_back(shiness);
         modelData.textures.clear();
         loadTexture(material, &modelData.textures[aiTextureType_DIFFUSE], aiTextureType_DIFFUSE);
+        loadTexture(material, &modelData.textures[aiTextureType_NORMALS], aiTextureType_NORMALS);
     }
 
     return modelData;
@@ -207,12 +231,16 @@ ModelData ModelManager::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t 
 void ModelManager::init(ModelData* model) {
     model->vertices.clear();
     model->normals.clear();
+    model->tangents.clear();
+    model->biTangents.clear();
     model->texcoord.clear();
     model->indices.clear();
     model->parameter.clear();
     model->textures.clear();
     vector<glm::vec3>().swap(model->vertices);
     vector<glm::vec3>().swap(model->normals);
+    vector<glm::vec3>().swap(model->tangents);
+    vector<glm::vec3>().swap(model->biTangents);
     vector<glm::vec2>().swap(model->texcoord);
     vector<uint32_t>().swap(model->indices);
     vector<float>().swap(model->parameter);
@@ -258,6 +286,7 @@ void ModelManager::loadModel(string path, vector<ModelData> *modelList)
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path,
                                               aiProcess_Triangulate |
+                                              aiProcess_CalcTangentSpace |
                                               aiProcess_FlipUVs);
 
     const aiNode *node = scene->mRootNode;
