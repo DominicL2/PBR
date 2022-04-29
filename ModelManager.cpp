@@ -136,9 +136,10 @@ GLuint ModelManager::getVboId(int32_t type, ModelData *modelData)
 GLuint ModelManager::getTextureId(aiString path)
 {
     GLuint id           = 0U;
-    QImage *srcImg = new QImage();    
+    QImage *srcImg = new QImage();
     srcImg->load((mDirectoryPath + "texture/" + path.C_Str()).c_str());
-    qDebug("Texture : %s", (mDirectoryPath + "texture/" + path.C_Str()).c_str());
+    *srcImg = srcImg->convertToFormat(QImage::Format_RGBA8888);
+    qDebug("Texture : %s - %d %d %d", (mDirectoryPath + "texture/" + path.C_Str()).c_str(), srcImg->bitPlaneCount(), srcImg->depth(), srcImg->format());
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, srcImg->width(), srcImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, srcImg->bits());
@@ -149,6 +150,7 @@ GLuint ModelManager::getTextureId(aiString path)
     glBindTexture(GL_TEXTURE_2D, 0);
     delete srcImg;
 
+    mTextureMap[path.C_Str()] = id;
     return id;
 }
 
@@ -157,7 +159,11 @@ void ModelManager::loadTexture(aiMaterial *material, vector<GLuint> *textureId, 
     for (uint32_t i = 0; i < material->GetTextureCount(type); i++) {
         aiString path;
         material->GetTexture(type, i, &path);
-        textureId->push_back(getTextureId(path));
+        if (mTextureMap[path.C_Str()] != 0U) {
+            textureId->push_back(mTextureMap[path.C_Str()]);
+        } else {
+            textureId->push_back(getTextureId(path));
+        }
     }
 }
 
@@ -279,6 +285,7 @@ void ModelManager::loadModel(string path, vector<ModelData> *modelList)
     if (modelList->size() > 0) {
         modelList->clear();
         vector<ModelData>().swap(*modelList);
+        mTextureMap.clear();
     }
 
     mDirectoryPath = getBasePath(path);

@@ -57,6 +57,7 @@ typedef struct MODEL_SIZE{
         max = glm::vec3(0.0, 0.0, 0.0);
    }
 } ModelSize;
+
 typedef struct ModelData {
     vector<glm::vec3> vertices;
     vector<glm::vec3> normals;
@@ -109,7 +110,8 @@ public:
     void init(ModelData* model);
 
 private :
-    string            mDirectoryPath;
+    string mDirectoryPath;
+    unordered_map<string, uint32_t> mTextureMap;
 
     GLuint getVboId(int32_t type, ModelData *modelData);
 
