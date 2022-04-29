@@ -296,8 +296,7 @@ int32_t GLRenderer::registerUniform(SHADER_TYPE type)
             break;
         }
 
-        uniformId = glGetUniformLocation(mContext.program, "texAlbedo");
-        glUniform1i(uniformId, 0);
+        uniformId = glGetUniformLocation(mContext.program, "texAlbedo");        
         if (uniformId >= 0) {
             mContext.uniform.push_back(uniformId);
         } else {
@@ -305,7 +304,6 @@ int32_t GLRenderer::registerUniform(SHADER_TYPE type)
         }
 
         uniformId = glGetUniformLocation(mContext.program, "texNormalMap");
-        glUniform1i(uniformId, 0);
         if (uniformId >= 0) {
             mContext.uniform.push_back(uniformId);
         } else {
@@ -544,6 +542,7 @@ void GLRenderer::draw(const ModelData *modelData)
     auto baseColor = modelData->textures.find(aiTextureType_DIFFUSE);
     glm::vec3 defaultColor = glm::vec3(0.0, 0.0, 0.0);
     if (baseColor->second.size() > 0U) {
+        glUniform1i(mContext.uniform[PHONG_SHADER_UNIFORM_TEXTURE_ALBEDO], 0);
         for (int i = 0; i < baseColor->second.size(); i++) {
             glActiveTexture(GL_TEXTURE0 + textureIndex);
             glBindTexture(GL_TEXTURE_2D, baseColor->second[i]);
@@ -555,6 +554,7 @@ void GLRenderer::draw(const ModelData *modelData)
 
     auto normalMap = modelData->textures.find(aiTextureType_NORMALS);
     if (normalMap->second.size() > 0U) {
+        glUniform1i(mContext.uniform[PHONG_SHADER_UNIFORM_TEXTURE_NORMAL_MAP], 1);
         for (int i = 0; i < normalMap->second.size(); i++) {
             glActiveTexture(GL_TEXTURE0 + textureIndex);
             glBindTexture(GL_TEXTURE_2D, normalMap->second[i]);
