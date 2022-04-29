@@ -139,7 +139,7 @@ GLuint ModelManager::getTextureId(aiString path)
     QImage *srcImg = new QImage();
     srcImg->load((mDirectoryPath + "texture/" + path.C_Str()).c_str());
     *srcImg = srcImg->convertToFormat(QImage::Format_RGBA8888);
-    qDebug("Texture : %s - %d %d %d", (mDirectoryPath + "texture/" + path.C_Str()).c_str(), srcImg->bitPlaneCount(), srcImg->depth(), srcImg->format());
+    //qDebug("Texture : %s - %d %d %d", (mDirectoryPath + "texture/" + path.C_Str()).c_str(), srcImg->bitPlaneCount(), srcImg->depth(), srcImg->format());
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, srcImg->width(), srcImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, srcImg->bits());
@@ -170,6 +170,8 @@ void ModelManager::loadTexture(aiMaterial *material, vector<GLuint> *textureId, 
 ModelData ModelManager::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t meshIndex)
 {
     ModelData modelData;
+    modelData.objectName = mesh->mName.C_Str();
+
     for (uint32_t v = 0U; v < mesh->mNumVertices; v++) {
         modelData.size.max.x = (mesh->mVertices[v].x > modelData.size.max.x) ? mesh->mVertices[v].x : modelData.size.max.x;
         modelData.size.max.y = (mesh->mVertices[v].y > modelData.size.max.y) ? mesh->mVertices[v].y  : modelData.size.max.y;
@@ -212,7 +214,11 @@ ModelData ModelManager::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t 
 
     modelData.vboId[VBO_ID_TYPE_VERTEX]     =  getVboId(VBO_ID_TYPE_VERTEX,     &modelData);
     modelData.vboId[VBO_ID_TYPE_NORMAL]     =  getVboId(VBO_ID_TYPE_NORMAL,     &modelData);
-    modelData.vboId[VBO_ID_TYPE_TEXCOORD]   =  getVboId(VBO_ID_TYPE_TEXCOORD,   &modelData);
+    if (mesh->HasTextureCoords(meshIndex)) {
+        modelData.vboId[VBO_ID_TYPE_TEXCOORD]   =  getVboId(VBO_ID_TYPE_TEXCOORD,   &modelData);
+    } else {
+        modelData.vboId[VBO_ID_TYPE_TEXCOORD] = 0;
+    }
     modelData.vboId[VBO_ID_TYPE_INDEX]      =  getVboId(VBO_ID_TYPE_INDEX,      &modelData);
     modelData.vboId[VBO_ID_TYPE_TANGENT]    =  getVboId(VBO_ID_TYPE_TANGENT,    &modelData);
     modelData.vboId[VBO_ID_TYPE_BITANGENT]  =  getVboId(VBO_ID_TYPE_BITANGENT,  &modelData);
@@ -220,6 +226,7 @@ ModelData ModelManager::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t 
     if (mesh->mMaterialIndex >= 0U) {
         aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
         modelData.materialName = material->GetName().C_Str();
+        qDebug("Material Name : %s", modelData.materialName.c_str());
         material->Get(AI_MATKEY_COLOR_AMBIENT, modelData.weight[LIGHT_WEIGHT_TYPE_AMBIENT]);
         material->Get(AI_MATKEY_COLOR_DIFFUSE, modelData.weight[LIGHT_WEIGHT_TYPE_DIFFUSE]);
         material->Get(AI_MATKEY_COLOR_SPECULAR, modelData.weight[LIGHT_WEIGHT_TYPE_SPECULAR]);
@@ -227,8 +234,15 @@ ModelData ModelManager::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t 
         material->Get(AI_MATKEY_SHININESS, shiness);
         modelData.parameter.push_back(shiness);
         modelData.textures.clear();
+
         loadTexture(material, &modelData.textures[aiTextureType_DIFFUSE], aiTextureType_DIFFUSE);
+        for (int t = 0; t < modelData.textures[aiTextureType_DIFFUSE].size(); t++) {
+            qDebug("D(%d)", modelData.textures[aiTextureType_DIFFUSE][t]);
+        }
         loadTexture(material, &modelData.textures[aiTextureType_NORMALS], aiTextureType_NORMALS);
+        for (int t = 0; t < modelData.textures[aiTextureType_NORMALS].size(); t++) {
+            qDebug("N(%d)", modelData.textures[aiTextureType_NORMALS][t]);
+        }
     }
 
     return modelData;

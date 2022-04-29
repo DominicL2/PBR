@@ -89,10 +89,12 @@ typedef struct ModelData {
         vector<glm::vec2>().swap(texcoord);
         vector<float>().swap(parameter);
         unordered_map<aiTextureType, vector<GLuint>>().swap(textures);
-        vboId[VBO_ID_TYPE_VERTEX]   = 0U;
-        vboId[VBO_ID_TYPE_NORMAL]   = 0U;
-        vboId[VBO_ID_TYPE_TEXCOORD] = 0U;
-        vboId[VBO_ID_TYPE_INDEX]    = 0U;
+        vboId[VBO_ID_TYPE_VERTEX]       = 0U;
+        vboId[VBO_ID_TYPE_NORMAL]       = 0U;
+        vboId[VBO_ID_TYPE_TANGENT]      = 0U;
+        vboId[VBO_ID_TYPE_BITANGENT]    = 0U;
+        vboId[VBO_ID_TYPE_TEXCOORD]     = 0U;
+        vboId[VBO_ID_TYPE_INDEX]        = 0U;
         materialName = "";
     }
 } MODEL_DATA;

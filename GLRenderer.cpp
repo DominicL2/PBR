@@ -425,6 +425,8 @@ int32_t GLRenderer::createContext()
 }
 void GLRenderer::drawAxis()
 {
+    glUseProgram(mPrimitiveContext.program);
+
     if ((mViewportInfo.x == 0) &&  (mViewportInfo.width == 0) &&
         (mViewportInfo.y == 0) &&  (mViewportInfo.height == 0)) {
         return;
@@ -462,6 +464,8 @@ void GLRenderer::drawAxis()
 
         glDisableVertexAttribArray(mPrimitiveContext.attribute[0]);
     }
+
+    glUseProgram(9);
 }
 
 void GLRenderer::draw(const ModelData *modelData)
@@ -470,6 +474,11 @@ void GLRenderer::draw(const ModelData *modelData)
         (mViewportInfo.y == 0) &&  (mViewportInfo.height == 0)) {
         return;
     }
+    glUseProgram(mContext.program);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
 
     glViewport(mViewportInfo.x, mViewportInfo.y , mViewportInfo.width, mViewportInfo.height);
     glm::mat4 mvpMatrix         = glm::mat4(1.0f);
@@ -532,18 +541,24 @@ void GLRenderer::draw(const ModelData *modelData)
     glVertexAttribPointer(mContext.attribute[PHONG_SHADER_ATTR_BITANGENT], 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
     glEnableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_BITANGENT]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, modelData->vboId[VBO_ID_TYPE_TEXCOORD]);
-    glVertexAttribPointer(mContext.attribute[PHONG_SHADER_ATTR_TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void*)0);
-    glEnableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_TEXCOORD]);
-
+    if (modelData->vboId[VBO_ID_TYPE_TEXCOORD] > 0) {
+        glBindBuffer(GL_ARRAY_BUFFER, modelData->vboId[VBO_ID_TYPE_TEXCOORD]);
+        glVertexAttribPointer(mContext.attribute[PHONG_SHADER_ATTR_TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void*)0);
+        glEnableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_TEXCOORD]);
+    } else {
+        qDebug("No has texcoord!!");
+    }
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, modelData->vboId[VBO_ID_TYPE_INDEX]);
 
     int textureIndex = 0;
     auto baseColor = modelData->textures.find(aiTextureType_DIFFUSE);
     glm::vec3 defaultColor = glm::vec3(0.0, 0.0, 0.0);
+    //qDebug("ObjName : %s", modelData->objectName.c_str());
+    //qDebug("MtlName : %s", modelData->materialName.c_str());
     if (baseColor->second.size() > 0U) {
         glUniform1i(mContext.uniform[PHONG_SHADER_UNIFORM_TEXTURE_ALBEDO], 0);
         for (int i = 0; i < baseColor->second.size(); i++) {
+            //qDebug("Tex Id : %d", baseColor->second[i]);
             glActiveTexture(GL_TEXTURE0 + textureIndex);
             glBindTexture(GL_TEXTURE_2D, baseColor->second[i]);
             textureIndex++;
@@ -569,11 +584,22 @@ void GLRenderer::draw(const ModelData *modelData)
 
     glDrawElements(GL_TRIANGLES, modelData->indices.size(), GL_UNSIGNED_INT, 0);
 
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glDisableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_VERTEX]);
     glDisableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_NORMAL]);
-    glDisableVertexAttribArray(mContext.attribute[VBO_ID_TYPE_TEXCOORD]);
+    glDisableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_TANGENT]);
+    glDisableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_BITANGENT]);
+    glDisableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_TEXCOORD]);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_BLEND);
+    glBindBuffer(GL_ARRAY_BUFFER,0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+    glUseProgram(0);
 }
 
 bool GLRenderer::loadded() const
@@ -592,26 +618,11 @@ void GLRenderer::paint()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.085f, 0.095f, 0.085f, 0.f);
 
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
-
-
-        glUseProgram(mPrimitiveContext.program);
         drawAxis();
 
-        glUseProgram(mContext.program);
         for (const auto& modelData : mModelList) {
             draw(&modelData);
         }
-
-        glDisable(GL_DEPTH_TEST);
-        glDisable(GL_CULL_FACE);
-        glDisable(GL_BLEND);
-        glBindBuffer(GL_ARRAY_BUFFER,0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
-        glUseProgram(0);
     } else {}
 }
 
