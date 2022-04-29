@@ -544,9 +544,10 @@ void GLRenderer::draw(const ModelData *modelData)
     auto baseColor = modelData->textures.find(aiTextureType_DIFFUSE);
     glm::vec3 defaultColor = glm::vec3(0.0, 0.0, 0.0);
     if (baseColor->second.size() > 0U) {
-        for (textureIndex = 0; textureIndex < baseColor->second.size(); textureIndex++) {
+        for (int i = 0; i < baseColor->second.size(); i++) {
             glActiveTexture(GL_TEXTURE0 + textureIndex);
-            glBindTexture(GL_TEXTURE_2D, baseColor->second[textureIndex]);
+            glBindTexture(GL_TEXTURE_2D, baseColor->second[i]);
+            textureIndex++;
         }
     } else {
         defaultColor = glm::vec3(0.55, 0.55, 0.55);
@@ -554,9 +555,10 @@ void GLRenderer::draw(const ModelData *modelData)
 
     auto normalMap = modelData->textures.find(aiTextureType_NORMALS);
     if (normalMap->second.size() > 0U) {
-        for (;textureIndex < normalMap->second.size(); textureIndex++) {
+        for (int i = 0; i < normalMap->second.size(); i++) {
             glActiveTexture(GL_TEXTURE0 + textureIndex);
-            glBindTexture(GL_TEXTURE_2D, normalMap->second[textureIndex]);
+            glBindTexture(GL_TEXTURE_2D, normalMap->second[i]);
+            textureIndex++;
         }
     }
 
@@ -570,6 +572,7 @@ void GLRenderer::draw(const ModelData *modelData)
     glDisableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_VERTEX]);
     glDisableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_NORMAL]);
     glDisableVertexAttribArray(mContext.attribute[VBO_ID_TYPE_TEXCOORD]);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
