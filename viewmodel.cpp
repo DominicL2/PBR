@@ -184,3 +184,8 @@ void ViewModel::setShaderType(int type)
     glRenderer->setShdaerType((SHADER_TYPE)type);
     emit sigMaterialChanged();
 }
+
+void ViewModel::showAxisLine(bool isShow)
+{
+     glRenderer->showAxisLine(isShow);
+}

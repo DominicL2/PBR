@@ -65,6 +65,7 @@ public:
     Q_INVOKABLE QStringList getMaterialList();
 
     Q_INVOKABLE void setShaderType(int type);
+    Q_INVOKABLE void showAxisLine(bool isShow);
 
 signals :
     void sigModelLoadded();

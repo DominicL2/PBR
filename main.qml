@@ -68,7 +68,7 @@ Item {
             loadingCircle.running = false
             sidePannel.setDefaultSpaceVal(viewModel.getLightPos(), viewModel.getViewPos(), viewModel.getModelRotationPos())
             sidePannel.setMaterialList(viewModel.getMaterialList())
-
+            sidePannel.showAxisCheckBox()
             switch (sidePannel.getShaderType()) {
             case gShader_Phong :
                 sidePannel.setMaterialParamForPhong(viewModel.getAmbient(), viewModel.getDiffuse(), viewModel.getSpecular(), viewModel.getShiness())

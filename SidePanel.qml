@@ -39,6 +39,10 @@ Rectangle {
         return title.shaderIndex
     }
 
+    function showAxisCheckBox() {
+        commonTab.showAixsCheckBox()
+    }
+
     SidePanelTitle {
         id : title
         onShaderIndexChanged: {

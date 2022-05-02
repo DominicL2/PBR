@@ -24,6 +24,10 @@ Rectangle {
         modelRotationEditor.setValue(pos.x, pos.y, pos.z)
     }
 
+    function showAixsCheckBox() {
+        axisCheckBox.visible = true
+    }
+
     FileDialog {
         id: fileDialog
         title: "Please choose a file"
@@ -127,8 +131,38 @@ Rectangle {
                 SidePanelCommonTab_LogBox {
                     id : logBox
                     width : commonTab.width - (leftMargin * 2)
-                    height : 234
+                    height : 244
                 }
+            }
+        }
+
+        CheckBox {
+            id: axisCheckBox
+            x : 266
+            y : 540
+            checked: true
+            visible: false
+            indicator: Rectangle {
+                implicitWidth: 26
+                implicitHeight: 26
+                x: axisCheckBox.leftPadding
+                y: parent.height / 2 - height / 2
+                radius: 3
+                color : "transparent"
+                border.color: gBlack2
+
+                Image {
+                    id : axisImage
+                    visible: axisCheckBox.checked ? true : false
+                    x : 0
+                    y : 0
+                    width : 26
+                    height : 26
+                    source : "resource/image/axis_icon.png"
+                }
+            }
+            onCheckedChanged: {
+                viewModel.showAxisLine(checked)
             }
         }
     }
