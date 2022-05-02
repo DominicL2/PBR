@@ -2,7 +2,9 @@
 #include "debugmacro.h"
 #include "primitiveshader.h"
 #include <iostream>
+#include <fstream>
 #include <sstream>
+#include <QDir>
 
 GLRenderer::GLRenderer()
 {
@@ -17,6 +19,7 @@ GLRenderer::GLRenderer()
     }
     mIsContextSwitching = false;
     mModelLoadded = false;
+    mIsShowOfAxisLine = true;
 
     mSpaceInfo.viewPoint    = glm::vec3(GL_SPACE_DEFUALT_VIEW_POINT_POS_X, GL_SPACE_DEFUALT_VIEW_POINT_POS_Y, GL_SPACE_DEFUALT_VIEW_POINT_POS_Z);
     mSpaceInfo.lightSource  = glm::vec3(GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_X, GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_Y, GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_Z);
@@ -65,6 +68,20 @@ GLRenderer::~GLRenderer()
 
 void GLRenderer::setViewPortsize(GLSpace::Rectangle rect) {
         mViewportInfo = rect;
+}
+
+string GLRenderer::loadShaderFile(string path)
+{
+    ifstream file(path.c_str());
+
+    stringstream shaderSource;
+
+    if (file.is_open()) {
+        shaderSource << file.rdbuf();
+        file.close();
+    }
+
+    return shaderSource.str();
 }
 
 int32_t GLRenderer::init()
@@ -396,8 +413,12 @@ int32_t GLRenderer::createContext()
     switch (mType) {
     case SHADER_TYPE_PHONG :
     case SHADER_TYPE_BLINN_PHONG :
-        mContext.shader[GLES_SHADER_TYPE_VERTEX]    = registerShader(mType == SHADER_TYPE_PHONG? VERTEX_SHADER_PHONG_STR : VERTEX_SHADER_BLINN_PHONG_STR, GL_VERTEX_SHADER);
-        mContext.shader[GLES_SHADER_TYPE_FRAGMENT]  = registerShader(mType == SHADER_TYPE_PHONG? FRAGMENT_SHADER_PHONG_STR : FRAGMENT_SHADER_BLINN_PHONG_STR, GL_FRAGMENT_SHADER);
+    {
+        string vertexShaderPath = mType == SHADER_TYPE_PHONG? (QDir::currentPath().toStdString() + "/" + PBR_SHADER_PATH_PHONG + ".vert").c_str() : (QDir::currentPath().toStdString() + "/" + PBR_SHADER_PATH_BLINN_PHONG + ".vert").c_str();
+        string fragmentShaderPath = mType == SHADER_TYPE_PHONG? (QDir::currentPath().toStdString() + "/" + PBR_SHADER_PATH_PHONG + ".frag").c_str() : (QDir::currentPath().toStdString() + "/" + PBR_SHADER_PATH_BLINN_PHONG + ".frag").c_str();
+
+        mContext.shader[GLES_SHADER_TYPE_VERTEX]    = registerShader(loadShaderFile(vertexShaderPath), GL_VERTEX_SHADER);
+        mContext.shader[GLES_SHADER_TYPE_FRAGMENT]  = registerShader(loadShaderFile(fragmentShaderPath), GL_FRAGMENT_SHADER);
 
         qDebug("Program(%d)", mContext.program);
         qDebug("Shader V(%d) F(%d)", mContext.shader[GLES_SHADER_TYPE_VERTEX], mContext.shader[GLES_SHADER_TYPE_FRAGMENT]);
@@ -412,6 +433,7 @@ int32_t GLRenderer::createContext()
             init();
         }
         break;
+    }
     case SHADER_TYPE_COOK_TORRNACE :
         break;
     default:
@@ -545,20 +567,16 @@ void GLRenderer::draw(const ModelData *modelData)
         glBindBuffer(GL_ARRAY_BUFFER, modelData->vboId[VBO_ID_TYPE_TEXCOORD]);
         glVertexAttribPointer(mContext.attribute[PHONG_SHADER_ATTR_TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void*)0);
         glEnableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_TEXCOORD]);
-    } else {
-        qDebug("No has texcoord!!");
-    }
+    } else {}
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, modelData->vboId[VBO_ID_TYPE_INDEX]);
 
     int textureIndex = 0;
     auto baseColor = modelData->textures.find(aiTextureType_DIFFUSE);
     glm::vec3 defaultColor = glm::vec3(0.0, 0.0, 0.0);
-    //qDebug("ObjName : %s", modelData->objectName.c_str());
-    //qDebug("MtlName : %s", modelData->materialName.c_str());
+
     if (baseColor->second.size() > 0U) {
         glUniform1i(mContext.uniform[PHONG_SHADER_UNIFORM_TEXTURE_ALBEDO], 0);
         for (int i = 0; i < baseColor->second.size(); i++) {
-            //qDebug("Tex Id : %d", baseColor->second[i]);
             glActiveTexture(GL_TEXTURE0 + textureIndex);
             glBindTexture(GL_TEXTURE_2D, baseColor->second[i]);
             textureIndex++;
@@ -618,7 +636,9 @@ void GLRenderer::paint()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.085f, 0.095f, 0.085f, 0.f);
 
-        drawAxis();
+        if (mIsShowOfAxisLine) {
+            drawAxis();
+        } else {}
 
         for (const auto& modelData : mModelList) {
             draw(&modelData);

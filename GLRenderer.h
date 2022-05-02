@@ -40,13 +40,13 @@ public:
         m_window = window;
     }
 
-
     inline glm::vec3 getViewPos() {
         return mSpaceInfo.viewPoint;
     }
     inline glm::vec3 getLightPos() {
         return mSpaceInfo.lightSource;
     }
+
     inline glm::vec3 getModelRotation() {
         return mModelRatation;
     }
@@ -81,6 +81,10 @@ public:
     /// choose shader type
     void setShdaerType(SHADER_TYPE type);
 
+    inline void showAxisLine(bool isShow) {
+       mIsShowOfAxisLine = isShow;
+    }
+
 signals:
     void sigMeshInfo(string info);
 
@@ -88,6 +92,7 @@ public slots:
     void paint();
 
 private :
+    string loadShaderFile(string path);
     GLuint registerShader(const string text, uint32_t type);
     int32_t connectShader2Program(GLRendererContext *context);
     int32_t registerAttribute(SHADER_TYPE type);
@@ -113,9 +118,9 @@ private :
     glm::vec3           mScale;
     QQuickWindow        *m_window;
 
-    GLSpace::Line  mAxisLine[3];
-
-    map<string, vector<int>>      mMaterialMap;
+    GLSpace::Line               mAxisLine[3];
+    bool                        mIsShowOfAxisLine;
+    map<string, vector<int>>    mMaterialMap;
     string                      mCurrMaterialName;
 };
 
