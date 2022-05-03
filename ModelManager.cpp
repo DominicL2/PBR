@@ -2,6 +2,7 @@
 #include <assimp/postprocess.h>
 #include <QDir>
 #include <string>
+#include <iostream>
 #include <QPixmap>
 #include "debugmacro.h"
 
@@ -133,13 +134,16 @@ GLuint ModelManager::getVboId(int32_t type, ModelData *modelData)
     return vboId;
 }
 
-GLuint ModelManager::getTextureId(aiString path)
+GLuint ModelManager::getTextureId(string path)
 {
     GLuint id           = 0U;
     QImage *srcImg = new QImage();
-    srcImg->load((mDirectoryPath + "texture/" + path.C_Str()).c_str());
+    std::replace(path.begin(), path.end(), '\\', '/');
+    path = path.substr((int)path.find("/", 0) + 1, path.length());
+
+    srcImg->load((mDirectoryPath + path).c_str());
     *srcImg = srcImg->convertToFormat(QImage::Format_RGBA8888);
-    qDebug("Texture : %s - %d %d %d", (mDirectoryPath + "texture/" + path.C_Str()).c_str(), srcImg->bitPlaneCount(), srcImg->depth(), srcImg->format());
+    qDebug("Texture : %s - %d %d %d", (mDirectoryPath + path).c_str(), srcImg->bitPlaneCount(), srcImg->depth(), srcImg->format());
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, srcImg->width(), srcImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, srcImg->bits());
@@ -150,20 +154,15 @@ GLuint ModelManager::getTextureId(aiString path)
     glBindTexture(GL_TEXTURE_2D, 0);
     delete srcImg;
 
-    mTextureMap[path.C_Str()] = id;
+    mTextureMap[path.c_str()] = id;
     return id;
 }
 
-void ModelManager::loadTexture(aiMaterial *material, vector<GLuint> *textureId, aiTextureType type)
+void ModelManager::loadTexture(vector<GLuint> *textureId, string path)
 {
-    for (uint32_t i = 0; i < material->GetTextureCount(type); i++) {
-        aiString path;
-        material->GetTexture(type, i, &path);
-        if (mTextureMap[path.C_Str()] != 0U) {
-            textureId->push_back(mTextureMap[path.C_Str()]);
-        } else {
-            textureId->push_back(getTextureId(path));
-        }
+    GLuint texId = getTextureId(path);
+    if (texId > 0) {
+        textureId->push_back(texId);
     }
 }
 
@@ -226,7 +225,6 @@ ModelData ModelManager::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t 
     if (mesh->mMaterialIndex >= 0U) {
         aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
         modelData.materialName = material->GetName().C_Str();
-        qDebug("Material Name : %s", modelData.materialName.c_str());
         material->Get(AI_MATKEY_COLOR_AMBIENT, modelData.weight[LIGHT_WEIGHT_TYPE_AMBIENT]);
         material->Get(AI_MATKEY_COLOR_DIFFUSE, modelData.weight[LIGHT_WEIGHT_TYPE_DIFFUSE]);
         material->Get(AI_MATKEY_COLOR_SPECULAR, modelData.weight[LIGHT_WEIGHT_TYPE_SPECULAR]);
@@ -237,11 +235,18 @@ ModelData ModelManager::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t 
             modelData.textures.clear();
         }
 
-        /// For obj, mtl file suporrting
-        loadTexture(material, &modelData.textures[aiTextureType_DIFFUSE], aiTextureType_DIFFUSE);
-        loadTexture(material, &modelData.textures[aiTextureType_NORMALS], aiTextureType_NORMALS);
-        loadTexture(material, &modelData.textures[aiTextureType_SHININESS], aiTextureType_SHININESS);
-        loadTexture(material, &modelData.textures[aiTextureType_SPECULAR], aiTextureType_SPECULAR);
+        for (int type = aiTextureType_DIFFUSE; type < aiTextureType_UNKNOWN; type++) {
+            modelData.textures[(aiTextureType)type].clear();
+            for (uint32_t i = 0; i < material->GetTextureCount((aiTextureType)type); i++) {
+                aiString path;
+                material->GetTexture((aiTextureType)type, i, &path);
+                if (mTextureMap[path.C_Str()] != 0U) {
+                    modelData.textures[(aiTextureType)type].push_back(mTextureMap[path.C_Str()]);
+                } else {
+                    modelData.textures[(aiTextureType)type].push_back(getTextureId(path.C_Str()));
+                }
+            }
+        }
     }
 
     return modelData;
@@ -304,7 +309,7 @@ void ModelManager::loadModel(string path, vector<ModelData> *modelList)
     mDirectoryPath = getBasePath(path);
 
     Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(path,
+    const aiScene* scene = importer.ReadFile(   path,
                                               aiProcess_Triangulate |
                                               aiProcess_CalcTangentSpace |
                                               aiProcess_FlipUVs);

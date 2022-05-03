@@ -114,13 +114,12 @@ public:
 private :
     string mDirectoryPath;
     unordered_map<string, uint32_t> mTextureMap;
-
     GLuint getVboId(int32_t type, ModelData *modelData);
 
     /// Load Texture
     QStringList getTextureFilePath(string path);
-    GLuint getTextureId(aiString path);
-    void loadTexture(aiMaterial *material, vector<GLuint> *textureId, aiTextureType type);
+    GLuint getTextureId(string path);
+    void loadTexture(vector<GLuint> *textureId, string path);
     ModelData parseModel(const aiScene *scene, aiMesh* mesh,  uint32_t meshIndex);
     aiTextureType getTextureTypeUsingFileName(string name);
     string getBasePath(string fullPath);

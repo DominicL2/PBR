@@ -124,10 +124,42 @@ int32_t GLRenderer::init()
 
     return ret;
 }
+FileExtension GLRenderer::getFileExtension(string path)
+{
+    FileExtension ret = NUM_FILE_EXTENSION;
+    for (int i = 0; i < NUM_FILE_EXTENSION; i++) {
+        string targetExtension = "";
+        switch (i) {
+        case FILE_EXTENSION_OBJ :
+            targetExtension = ".obj";
+            break;
+        case FILE_EXTENSION_FBX :
+            targetExtension = ".fbx";
+            break;
+        case FILE_EXTENSION_BLEND :
+            targetExtension = ".blend";
+            break;
+        default :
+            break;
+        }
+
+        int pos = path.find(targetExtension);
+        if (pos > 0) {
+            ret = (FileExtension)i;
+            break;
+        }
+    }
+    return ret;
+}
 
 int32_t GLRenderer::load(string path)
 {
     int32_t ret = GL_RENDERER_FAIL;
+    mModelExtension = getFileExtension(path);
+    if (mModelExtension != FILE_EXTENSION_OBJ
+            && mModelExtension != FILE_EXTENSION_FBX) {
+        return ret;
+    }
 
     for (int i = 0; i < mModelList.size(); i ++) {
         mModelManager->init(&mModelList[i]);
@@ -140,6 +172,7 @@ int32_t GLRenderer::load(string path)
         mModelLoadded = true;
         mModelRatation = glm::vec3(0.f, 0.f, 0.f);
         mLengthAll = glm::vec3(0.f, 0.f, 0.f);
+        qDebug("Extension : %d", (int)mModelExtension);
         ret = GL_RENDERER_SUCCESS;        
     } else {}
 
@@ -779,7 +812,7 @@ void GLRenderer::drawUsingCookTorrance(const ModelData *modelData)
         }
     }
 
-    auto roughnessMap = modelData->textures.find(aiTextureType_SHININESS);
+    auto roughnessMap = modelData->textures.find(mModelExtension == FILE_EXTENSION_OBJ ? aiTextureType_SHININESS : aiTextureType_DIFFUSE_ROUGHNESS);
     if (roughnessMap->second.size() > 0U) {
         glUniform1i(mContext.uniform[COOK_TORRANCE_SHADER_UNIFORM_TEXTURE_ROUGHNESS_MAP], 2);
         for (size_t i = 0; i < roughnessMap->second.size(); i++) {
@@ -789,7 +822,7 @@ void GLRenderer::drawUsingCookTorrance(const ModelData *modelData)
         }
     }
 
-    auto metallicMap = modelData->textures.find(aiTextureType_SPECULAR);
+    auto metallicMap = modelData->textures.find(mModelExtension == FILE_EXTENSION_OBJ ? aiTextureType_SHININESS : aiTextureType_METALNESS);
     if (metallicMap->second.size() > 0U) {
         glUniform1i(mContext.uniform[COOK_TORRANCE_SHADER_UNIFORM_TEXTURE_METALLIC_MAP], 3);
         for (size_t i = 0; i < metallicMap->second.size(); i++) {

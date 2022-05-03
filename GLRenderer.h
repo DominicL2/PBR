@@ -17,6 +17,13 @@
 
 using namespace std;
 
+typedef enum {
+    FILE_EXTENSION_OBJ = 0,
+    FILE_EXTENSION_FBX,
+    FILE_EXTENSION_BLEND,
+    NUM_FILE_EXTENSION,
+} FileExtension;
+
 class GLRenderer : public QObject, protected QOpenGLFunctions
 {
     Q_OBJECT
@@ -92,6 +99,7 @@ public slots:
     void paint();
 
 private :
+    FileExtension getFileExtension(string path);
     string loadShaderFile(string path);
     GLuint registerShader(const string text, uint32_t type);
     int32_t connectShader2Program(GLRendererContext *context);
@@ -121,6 +129,7 @@ private :
     glm::vec3           mLengthAll;
     glm::vec3           mScale;
     QQuickWindow        *m_window;
+    FileExtension       mModelExtension;
 
     GLSpace::Line               mAxisLine[3];
     bool                        mIsShowOfAxisLine;
