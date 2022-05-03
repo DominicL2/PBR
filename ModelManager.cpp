@@ -139,7 +139,7 @@ GLuint ModelManager::getTextureId(aiString path)
     QImage *srcImg = new QImage();
     srcImg->load((mDirectoryPath + "texture/" + path.C_Str()).c_str());
     *srcImg = srcImg->convertToFormat(QImage::Format_RGBA8888);
-    //qDebug("Texture : %s - %d %d %d", (mDirectoryPath + "texture/" + path.C_Str()).c_str(), srcImg->bitPlaneCount(), srcImg->depth(), srcImg->format());
+    qDebug("Texture : %s - %d %d %d", (mDirectoryPath + "texture/" + path.C_Str()).c_str(), srcImg->bitPlaneCount(), srcImg->depth(), srcImg->format());
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, srcImg->width(), srcImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, srcImg->bits());
@@ -230,19 +230,18 @@ ModelData ModelManager::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t 
         material->Get(AI_MATKEY_COLOR_AMBIENT, modelData.weight[LIGHT_WEIGHT_TYPE_AMBIENT]);
         material->Get(AI_MATKEY_COLOR_DIFFUSE, modelData.weight[LIGHT_WEIGHT_TYPE_DIFFUSE]);
         material->Get(AI_MATKEY_COLOR_SPECULAR, modelData.weight[LIGHT_WEIGHT_TYPE_SPECULAR]);
-        float shiness = 0.0;
-        material->Get(AI_MATKEY_SHININESS, shiness);
-        modelData.parameter.push_back(shiness);
-        modelData.textures.clear();
 
+        float shiness = 0.0;
+        if (material->Get(AI_MATKEY_SHININESS, shiness) == aiReturn_SUCCESS) {
+            modelData.parameter.push_back(shiness);
+            modelData.textures.clear();
+        }
+
+        /// For obj, mtl file suporrting
         loadTexture(material, &modelData.textures[aiTextureType_DIFFUSE], aiTextureType_DIFFUSE);
-        for (int t = 0; t < modelData.textures[aiTextureType_DIFFUSE].size(); t++) {
-            qDebug("D(%d)", modelData.textures[aiTextureType_DIFFUSE][t]);
-        }
         loadTexture(material, &modelData.textures[aiTextureType_NORMALS], aiTextureType_NORMALS);
-        for (int t = 0; t < modelData.textures[aiTextureType_NORMALS].size(); t++) {
-            qDebug("N(%d)", modelData.textures[aiTextureType_NORMALS][t]);
-        }
+        loadTexture(material, &modelData.textures[aiTextureType_SHININESS], aiTextureType_SHININESS);
+        loadTexture(material, &modelData.textures[aiTextureType_SPECULAR], aiTextureType_SPECULAR);
     }
 
     return modelData;

@@ -97,10 +97,14 @@ private :
     int32_t connectShader2Program(GLRendererContext *context);
     int32_t registerAttribute(SHADER_TYPE type);
     int32_t registerUniform(SHADER_TYPE type);
+    int32_t registerUniformForPhong();
+    int32_t registerUniformForCookTorrance();
     int32_t createContext();
     int32_t createmPrimitiveContext();
     void checkShaderError(GLuint shader, GLuint flag, bool isProgram, const string &errMsg);
     void draw(const ModelData *modelData);
+    void drawUsingPhong(const ModelData *modelData);
+    void drawUsingCookTorrance(const ModelData *modelData);
     void drawAxis();
     bool mContextCreated;
     bool mModelLoadded;

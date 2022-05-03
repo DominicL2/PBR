@@ -73,7 +73,6 @@ void GLRenderer::setViewPortsize(GLSpace::Rectangle rect) {
 string GLRenderer::loadShaderFile(string path)
 {
     ifstream file(path.c_str());
-
     stringstream shaderSource;
 
     if (file.is_open()) {
@@ -194,6 +193,7 @@ int32_t GLRenderer::registerAttribute(SHADER_TYPE type)
     switch (type) {
     case SHADER_TYPE_PHONG :
     case SHADER_TYPE_BLINN_PHONG :
+    case SHADER_TYPE_COOK_TORRNACE :
         attributeId = glGetAttribLocation(mContext.program, "a_position");
         if (attributeId >= 0) {
             mContext.attribute.push_back(attributeId);
@@ -231,8 +231,6 @@ int32_t GLRenderer::registerAttribute(SHADER_TYPE type)
 
         ret = GL_RENDERER_SUCCESS;
         break;
-    case SHADER_TYPE_COOK_TORRNACE :
-        break;
     default:
         break;
     }
@@ -241,95 +239,165 @@ int32_t GLRenderer::registerAttribute(SHADER_TYPE type)
     return ret;
 }
 
+int32_t GLRenderer::registerUniformForPhong()
+{
+    int32_t ret = GL_RENDERER_FAIL;
+
+    GLint uniformId = glGetUniformLocation(mContext.program, "u_mvp");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
+    uniformId = glGetUniformLocation(mContext.program, "u_mv");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
+    uniformId = glGetUniformLocation(mContext.program, "u_lightPos");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
+    uniformId = glGetUniformLocation(mContext.program, "u_viewPos");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
+    uniformId = glGetUniformLocation(mContext.program, "ambientW");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
+    uniformId = glGetUniformLocation(mContext.program, "diffuseW");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
+    uniformId = glGetUniformLocation(mContext.program, "specularW");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
+    uniformId = glGetUniformLocation(mContext.program, "shiness");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
+    uniformId = glGetUniformLocation(mContext.program, "defaultColor");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
+    uniformId = glGetUniformLocation(mContext.program, "texAlbedo");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
+    uniformId = glGetUniformLocation(mContext.program, "texNormalMap");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
+    ret = GL_RENDERER_SUCCESS;
+    return ret;
+}
+
+int32_t GLRenderer::registerUniformForCookTorrance()
+{
+    int32_t ret = GL_RENDERER_FAIL;
+
+    GLint uniformId = glGetUniformLocation(mContext.program, "u_mvp");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
+    uniformId = glGetUniformLocation(mContext.program, "u_mv");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
+    uniformId = glGetUniformLocation(mContext.program, "u_lightPos");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
+    uniformId = glGetUniformLocation(mContext.program, "u_viewPos");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
+    uniformId = glGetUniformLocation(mContext.program, "texAlbedo");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
+    uniformId = glGetUniformLocation(mContext.program, "texNormalMap");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
+    uniformId = glGetUniformLocation(mContext.program, "texRoughnessMap");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
+    uniformId = glGetUniformLocation(mContext.program, "texMetallicMap");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+    ret = GL_RENDERER_SUCCESS;
+    return ret;
+}
+
 int32_t GLRenderer::registerUniform(SHADER_TYPE type)
 {
     int32_t ret = GL_RENDERER_FAIL;
 
-    GLint uniformId = -1;
-
     switch (type) {
     case SHADER_TYPE_PHONG :
     case SHADER_TYPE_BLINN_PHONG :
-        uniformId = glGetUniformLocation(mContext.program, "u_mvp");
-        if (uniformId >= 0) {
-            mContext.uniform.push_back(uniformId);
-        } else {
-            break;
-        }
-
-        uniformId = glGetUniformLocation(mContext.program, "u_mv");
-        if (uniformId >= 0) {
-            mContext.uniform.push_back(uniformId);
-        } else {
-            break;
-        }
-
-        uniformId = glGetUniformLocation(mContext.program, "u_lightPos");
-        if (uniformId >= 0) {
-            mContext.uniform.push_back(uniformId);
-        } else {
-            break;
-        }
-
-        uniformId = glGetUniformLocation(mContext.program, "u_viewPos");
-        if (uniformId >= 0) {
-            mContext.uniform.push_back(uniformId);
-        } else {
-            break;
-        }
-
-        uniformId = glGetUniformLocation(mContext.program, "ambientW");
-        if (uniformId >= 0) {
-            mContext.uniform.push_back(uniformId);
-        } else {
-            break;
-        }
-
-        uniformId = glGetUniformLocation(mContext.program, "diffuseW");
-        if (uniformId >= 0) {
-            mContext.uniform.push_back(uniformId);
-        } else {
-            break;
-        }
-
-        uniformId = glGetUniformLocation(mContext.program, "specularW");
-        if (uniformId >= 0) {
-            mContext.uniform.push_back(uniformId);
-        } else {
-            break;
-        }
-
-        uniformId = glGetUniformLocation(mContext.program, "shiness");
-        if (uniformId >= 0) {
-            mContext.uniform.push_back(uniformId);
-        } else {
-            break;
-        }
-
-        uniformId = glGetUniformLocation(mContext.program, "defaultColor");
-        if (uniformId >= 0) {
-            mContext.uniform.push_back(uniformId);
-        } else {
-            break;
-        }
-
-        uniformId = glGetUniformLocation(mContext.program, "texAlbedo");        
-        if (uniformId >= 0) {
-            mContext.uniform.push_back(uniformId);
-        } else {
-            break;
-        }
-
-        uniformId = glGetUniformLocation(mContext.program, "texNormalMap");
-        if (uniformId >= 0) {
-            mContext.uniform.push_back(uniformId);
-        } else {
-            break;
-        }
-
-        ret = GL_RENDERER_SUCCESS;
+        ret = registerUniformForPhong();
         break;
     case SHADER_TYPE_COOK_TORRNACE :
+        ret = registerUniformForCookTorrance();
         break;
     default:
         break;
@@ -435,6 +503,22 @@ int32_t GLRenderer::createContext()
         break;
     }
     case SHADER_TYPE_COOK_TORRNACE :
+        mContext.shader[GLES_SHADER_TYPE_VERTEX]    = registerShader(loadShaderFile((QDir::currentPath().toStdString() + "/" + PBR_SHADER_PATH_COOK_TORRANCE + ".vert").c_str()), GL_VERTEX_SHADER);
+        mContext.shader[GLES_SHADER_TYPE_FRAGMENT]  = registerShader(loadShaderFile((QDir::currentPath().toStdString() + "/" + PBR_SHADER_PATH_COOK_TORRANCE + ".frag").c_str()), GL_FRAGMENT_SHADER);
+
+        qDebug("Program(%d)", mContext.program);
+        qDebug("Shader V(%d) F(%d)", mContext.shader[GLES_SHADER_TYPE_VERTEX], mContext.shader[GLES_SHADER_TYPE_FRAGMENT]);
+        if (connectShader2Program(&mContext) == GL_RENDERER_FAIL) {
+            break;
+        } else {}
+        if (registerAttribute(SHADER_TYPE_COOK_TORRNACE) == GL_RENDERER_SUCCESS) {
+            if (registerUniform(SHADER_TYPE_COOK_TORRNACE) == GL_RENDERER_SUCCESS) {
+                ret = GL_RENDERER_SUCCESS;
+            } else {}
+        } else {
+            init();
+        }
+        break;
         break;
     default:
         break;
@@ -490,12 +574,8 @@ void GLRenderer::drawAxis()
     glUseProgram(9);
 }
 
-void GLRenderer::draw(const ModelData *modelData)
+void GLRenderer::drawUsingPhong(const ModelData *modelData)
 {
-    if ((mViewportInfo.x == 0) &&  (mViewportInfo.width == 0) &&
-        (mViewportInfo.y == 0) &&  (mViewportInfo.height == 0)) {
-        return;
-    }
     glUseProgram(mContext.program);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -576,7 +656,7 @@ void GLRenderer::draw(const ModelData *modelData)
 
     if (baseColor->second.size() > 0U) {
         glUniform1i(mContext.uniform[PHONG_SHADER_UNIFORM_TEXTURE_ALBEDO], 0);
-        for (int i = 0; i < baseColor->second.size(); i++) {
+        for (size_t i = 0; i < baseColor->second.size(); i++) {
             glActiveTexture(GL_TEXTURE0 + textureIndex);
             glBindTexture(GL_TEXTURE_2D, baseColor->second[i]);
             textureIndex++;
@@ -588,7 +668,7 @@ void GLRenderer::draw(const ModelData *modelData)
     auto normalMap = modelData->textures.find(aiTextureType_NORMALS);
     if (normalMap->second.size() > 0U) {
         glUniform1i(mContext.uniform[PHONG_SHADER_UNIFORM_TEXTURE_NORMAL_MAP], 1);
-        for (int i = 0; i < normalMap->second.size(); i++) {
+        for (size_t i = 0; i < normalMap->second.size(); i++) {
             glActiveTexture(GL_TEXTURE0 + textureIndex);
             glBindTexture(GL_TEXTURE_2D, normalMap->second[i]);
             textureIndex++;
@@ -618,6 +698,143 @@ void GLRenderer::draw(const ModelData *modelData)
     glBindBuffer(GL_ARRAY_BUFFER,0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
     glUseProgram(0);
+}
+
+void GLRenderer::drawUsingCookTorrance(const ModelData *modelData)
+{
+    glUseProgram(mContext.program);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+
+    glViewport(mViewportInfo.x, mViewportInfo.y , mViewportInfo.width, mViewportInfo.height);
+    glm::mat4 mvpMatrix         = glm::mat4(1.0f);
+    glm::mat4 mvMatrix          = glm::mat4(1.0f);
+    glm::mat4 modelMatrix       = glm::mat4(1.0f);
+    glm::mat4 viewMatrix        = glm::mat4(1.0f);
+    glm::mat4 projectionMatrix  = glm::mat4(1.0f);
+
+    float ratio = (float)mViewportInfo.width /  (float)mViewportInfo.height;
+    projectionMatrix = glm::perspective(glm::radians(mSpaceInfo.fov), ratio, 0.1f, GL_SPACE_DEFUALT_MAX_DISTANCE);
+    viewMatrix = glm::lookAt(mSpaceInfo.viewPoint, glm::vec3(0,
+                                                             0,
+                                                             0), GLSpace::getUpVector());
+
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(mScale.x / mLengthAll.x , mScale.y / mLengthAll.y, mScale.z / mLengthAll.z));
+    modelMatrix = glm::rotate(modelMatrix, glm::radians(mModelRatation.z), glm::vec3(0.f, 0.f, 1.f));
+    modelMatrix = glm::rotate(modelMatrix, glm::radians(mModelRatation.y), glm::vec3(0.f, 1.f, 0.f));
+    modelMatrix = glm::rotate(modelMatrix, glm::radians(mModelRatation.x), glm::vec3(1.f, 0.f, 0.f));
+
+    mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
+    mvMatrix = viewMatrix * modelMatrix;
+
+    glUniformMatrix4fv(mContext.uniform[COOK_TORRANCE_SHADER_UNIFORM_MVP], 1, GL_FALSE, (const float *)&mvpMatrix[0][0]);
+    glUniformMatrix4fv(mContext.uniform[COOK_TORRANCE_SHADER_UNIFORM_MV], 1, GL_FALSE, (const float *)&mvMatrix[0][0]);
+
+    glUniform3f(mContext.uniform[COOK_TORRANCE_SHADER_UNIFORM_LIGHT_POS], mSpaceInfo.lightSource.x, mSpaceInfo.lightSource.y, mSpaceInfo.lightSource.z);
+    glUniform3f(mContext.uniform[COOK_TORRANCE_SHADER_UNIFORM_VIEW_POS], mSpaceInfo.viewPoint.x, mSpaceInfo.viewPoint.y, mSpaceInfo.viewPoint.z);
+
+    glBindBuffer(GL_ARRAY_BUFFER, modelData->vboId[VBO_ID_TYPE_VERTEX]);
+    glVertexAttribPointer(mContext.attribute[PHONG_SHADER_ATTR_VERTEX], 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_VERTEX]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, modelData->vboId[VBO_ID_TYPE_NORMAL]);
+    glVertexAttribPointer(mContext.attribute[PHONG_SHADER_ATTR_NORMAL], 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_NORMAL]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, modelData->vboId[VBO_ID_TYPE_TANGENT]);
+    glVertexAttribPointer(mContext.attribute[PHONG_SHADER_ATTR_TANGENT], 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_TANGENT]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, modelData->vboId[VBO_ID_TYPE_BITANGENT]);
+    glVertexAttribPointer(mContext.attribute[PHONG_SHADER_ATTR_BITANGENT], 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+    glEnableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_BITANGENT]);
+
+    if (modelData->vboId[VBO_ID_TYPE_TEXCOORD] > 0) {
+        glBindBuffer(GL_ARRAY_BUFFER, modelData->vboId[VBO_ID_TYPE_TEXCOORD]);
+        glVertexAttribPointer(mContext.attribute[PHONG_SHADER_ATTR_TEXCOORD], 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void*)0);
+        glEnableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_TEXCOORD]);
+    } else {}
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, modelData->vboId[VBO_ID_TYPE_INDEX]);
+
+    int textureIndex = 0;
+    auto baseColor = modelData->textures.find(aiTextureType_DIFFUSE);
+    if (baseColor->second.size() > 0U) {
+        glUniform1i(mContext.uniform[COOK_TORRANCE_SHADER_UNIFORM_TEXTURE_ALBEDO], 0);
+        for (size_t i = 0; i < baseColor->second.size(); i++) {
+            glActiveTexture(GL_TEXTURE0 + textureIndex);
+            glBindTexture(GL_TEXTURE_2D, baseColor->second[i]);
+            textureIndex++;
+        }
+    }
+
+    auto normalMap = modelData->textures.find(aiTextureType_NORMALS);
+    if (normalMap->second.size() > 0U) {
+        glUniform1i(mContext.uniform[COOK_TORRANCE_SHADER_UNIFORM_TEXTURE_NORMAL_MAP], 1);
+        for (size_t i = 0; i < normalMap->second.size(); i++) {
+            glActiveTexture(GL_TEXTURE0 + textureIndex);
+            glBindTexture(GL_TEXTURE_2D, normalMap->second[i]);
+            textureIndex++;
+        }
+    }
+
+    auto roughnessMap = modelData->textures.find(aiTextureType_SHININESS);
+    if (roughnessMap->second.size() > 0U) {
+        glUniform1i(mContext.uniform[COOK_TORRANCE_SHADER_UNIFORM_TEXTURE_ROUGHNESS_MAP], 2);
+        for (size_t i = 0; i < roughnessMap->second.size(); i++) {
+            glActiveTexture(GL_TEXTURE0 + textureIndex);
+            glBindTexture(GL_TEXTURE_2D, roughnessMap->second[i]);
+            textureIndex++;
+        }
+    }
+
+    auto metallicMap = modelData->textures.find(aiTextureType_SPECULAR);
+    if (metallicMap->second.size() > 0U) {
+        glUniform1i(mContext.uniform[COOK_TORRANCE_SHADER_UNIFORM_TEXTURE_METALLIC_MAP], 3);
+        for (size_t i = 0; i < metallicMap->second.size(); i++) {
+            glActiveTexture(GL_TEXTURE0 + textureIndex);
+            glBindTexture(GL_TEXTURE_2D, metallicMap->second[i]);
+            textureIndex++;
+        }
+    }
+
+    glDrawElements(GL_TRIANGLES, modelData->indices.size(), GL_UNSIGNED_INT, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glDisableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_VERTEX]);
+    glDisableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_NORMAL]);
+    glDisableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_TANGENT]);
+    glDisableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_BITANGENT]);
+    glDisableVertexAttribArray(mContext.attribute[PHONG_SHADER_ATTR_TEXCOORD]);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_BLEND);
+    glBindBuffer(GL_ARRAY_BUFFER,0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+    glUseProgram(0);
+}
+
+void GLRenderer::draw(const ModelData *modelData)
+{
+    if ((mViewportInfo.x == 0) &&  (mViewportInfo.width == 0) &&
+        (mViewportInfo.y == 0) &&  (mViewportInfo.height == 0)) {
+        return;
+    }
+
+    switch (mType) {
+    case SHADER_TYPE_PHONG :
+    case SHADER_TYPE_BLINN_PHONG :
+        drawUsingPhong(modelData);
+        break;
+    case SHADER_TYPE_COOK_TORRNACE :
+        drawUsingCookTorrance(modelData);
+        break;
+    }
 }
 
 bool GLRenderer::loadded() const
