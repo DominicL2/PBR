@@ -68,7 +68,6 @@ Rectangle {
             id : commonTab
 
             onPathStrChanged: {
-                loadingCircle.running = true
                 viewModel.loadGrpahicsModel(pathStr)
                 dirPath = pathStr.substring(0, pathStr.lastIndexOf('/'))
             }

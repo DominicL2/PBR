@@ -1,5 +1,6 @@
 import QtQuick 2.6
 import QtQuick.Controls 1.4
+import QtQuick.Dialogs 1.2
 import PbrRender 0.5
 
 Item {
@@ -53,19 +54,12 @@ Item {
         Component.onCompleted: {
             setViewport(x, y, width, height)
         }
-        BusyIndicator {
-            id : loadingCircle
-            anchors.centerIn: parent
-            visible : true
-            running: false
-        }
     }
 
     Connections {
         id : viewModelConnector
         target :  viewModel
         onSigModelLoadded : {
-            loadingCircle.running = false
             sidePannel.setDefaultSpaceVal(viewModel.getLightPos(), viewModel.getViewPos(), viewModel.getModelRotationPos())
             sidePannel.setMaterialList(viewModel.getMaterialList())
             sidePannel.showAxisCheckBox()
@@ -97,6 +91,8 @@ Item {
         }
 
         onSigErrorMsg : {
+            errorMessageDialog.text = msg
+            errorMessageDialog.open()
             console.log(msg)
         }
     }
@@ -104,5 +100,16 @@ Item {
     SidePanel {
         id : sidePannel
         visible: true
+    }
+
+    MessageDialog {
+        id : errorMessageDialog
+        title : "Error Message"
+        text : ""
+        icon: StandardIcon.Critical
+        visible: false
+        onAccepted: {
+            Qt.quit()
+        }
     }
 }
