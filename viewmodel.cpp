@@ -54,7 +54,9 @@ void ViewModel::loadGrpahicsModel(QVariant string)
     if (glRenderer->load(string.toString().toStdString()) == GL_RENDERER_SUCCESS) {
         emit sigModelLoadded();
         setLoadded(true);
-    } else {}
+    } else {
+        emit sigErrorMsg(("Can not open file - " + string.toString().toStdString()).c_str());
+    }
 }
 
 QVector3D ViewModel::getViewPos()
@@ -188,4 +190,9 @@ void ViewModel::setShaderType(int type)
 void ViewModel::showAxisLine(bool isShow)
 {
      glRenderer->showAxisLine(isShow);
+}
+
+void ViewModel::loadTexture(QString path)
+{
+     glRenderer->loadTexture(path.toStdString());
 }

@@ -5,7 +5,6 @@
         <file>SidePanelTitle.qml</file>
         <file>SidePanelTabbar.qml</file>
         <file>SidePanelCommonTab.qml</file>
-        <file>SidePanelCommonTab_FileLoader.qml</file>
         <file>SidePanelCommonTab_LogBox.qml</file>
         <file>CustomButton.qml</file>
         <file>Editor3D.qml</file>
@@ -16,6 +15,7 @@
         <file>SidePanelMaterialTab_CookTorrance.qml</file>
         <file>SidePanelTitle_ComboBox.qml</file>
         <file>SidePanelMaterialTab.qml</file>
+        <file>FileLoader.qml</file>
     </qresource>
     <qresource prefix="/resource">
         <file>image/light_icon.png</file>

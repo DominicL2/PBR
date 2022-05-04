@@ -95,6 +95,10 @@ Item {
                 }
             }
         }
+
+        onSigErrorMsg : {
+            console.log(msg)
+        }
     }
 
     SidePanel {

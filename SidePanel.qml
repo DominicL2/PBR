@@ -3,10 +3,13 @@ import Qt.labs.controls 1.0
 import QtQuick.Layouts 1.3
 
 Rectangle {
+    id : sidePanel
     property int gSidePannelX : 730
     property int gSidePannelY : 0
     property int gSidePannelWidth : 350
     property int gSidePannelHeight : 720
+    property string dirPath : ""
+
 
     x : gSidePannelX
     y : gSidePannelY
@@ -67,6 +70,7 @@ Rectangle {
             onPathStrChanged: {
                 loadingCircle.running = true
                 viewModel.loadGrpahicsModel(pathStr)
+                dirPath = pathStr.substring(0, pathStr.lastIndexOf('/'))
             }
 
         }
@@ -74,6 +78,7 @@ Rectangle {
         SidePanelMaterialTab {
             id : materialTab
             shaderPageIndex : title.shaderIndex
+            dirPath : sidePanel.dirPath
         }
     }
 }

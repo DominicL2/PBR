@@ -9,8 +9,7 @@ Rectangle {
 
     property int leftMargin : 25
     property int yMargin : 25
-    property string pathStr : ""
-    property string displayStr : ""
+    property string pathStr : ""    
 
     function setLightPos(pos) {
         lightPosEditor.setValue(pos.x, pos.y, pos.z)
@@ -28,26 +27,7 @@ Rectangle {
         axisCheckBox.visible = true
     }
 
-    FileDialog {
-        id: fileDialog
-        title: "Please choose a file"
-        folder: "file:///home/dmlee/3d_models"
-        nameFilters: [ "3d Model files (*.obj *.fbx *.blend)", "All files (*)" ]
 
-        onAccepted: {
-            pathStr = fileUrl.toString().replace(/^(file:\/{2})/,"");
-            if (pathStr.length > 45) {
-                displayStr = pathStr.substring(0, 42) + "..."
-            } else {
-                displayStr = pathStr;
-            }
-
-            Qt.quit()
-        }
-        onRejected: {
-            Qt.quit()
-        }
-    }
 
     Rectangle {
         x : leftMargin
@@ -56,8 +36,20 @@ Rectangle {
             anchors.fill: parent
             spacing: yMargin
             /// File Loader
-            SidePanelCommonTab_FileLoader {
+            FileLoader {
                 id : fileLoader
+                name : "Path"
+                title : "Please choose a file"
+                folder: "file:///home/dmlee/3d_models"
+                nameFilters: "3d Model files (*.obj *.fbx *.blend)"
+                maxStrSize : 45
+                nameWidth : 20
+                nameHeight : 20
+                dispWidth: 230
+                dispHeight: 20
+                onPathStrChanged: {
+                    commonTab.pathStr = pathStr
+                }
             }
 
             /// Light  Pos

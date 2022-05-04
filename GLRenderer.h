@@ -88,6 +88,8 @@ public:
     /// choose shader type
     void setShdaerType(SHADER_TYPE type);
 
+    void loadTexture(string path);
+
     inline void showAxisLine(bool isShow) {
        mIsShowOfAxisLine = isShow;
     }

@@ -172,7 +172,6 @@ int32_t GLRenderer::load(string path)
         mModelLoadded = true;
         mModelRatation = glm::vec3(0.f, 0.f, 0.f);
         mLengthAll = glm::vec3(0.f, 0.f, 0.f);
-        qDebug("Extension : %d", (int)mModelExtension);
         ret = GL_RENDERER_SUCCESS;        
     } else {}
 
@@ -438,6 +437,7 @@ int32_t GLRenderer::registerUniform(SHADER_TYPE type)
     qDebug("[%s] : %s", __func__, ret == GL_RENDERER_SUCCESS ? "true" : "false");
     return ret;
 }
+
 void GLRenderer::checkShaderError(GLuint shader, GLuint flag, bool isProgram, const string &errMsg) {
     GLint success = 0;
     GLchar error[1024] = { 0 };
@@ -966,10 +966,11 @@ void GLRenderer::setShdaerType(SHADER_TYPE type)
 {
     if ((SHADER_TYPE_PHONG <= type && type < NUM_SHADER_TYPE) && type != mType) {
         mIsContextSwitching = true;
+        SHADER_TYPE prevType = mType;
         mType = type;
         if (init() == GL_RENDERER_SUCCESS) {
             if (createContext() == GL_RENDERER_SUCCESS) {
-
+                qDebug("Change shader from %d to %d", (int)prevType, (int)mType);
             } else {
                 qDebug("[%d][%s] Fail to context creation", __LINE__, __func__);
             }
@@ -977,5 +978,11 @@ void GLRenderer::setShdaerType(SHADER_TYPE type)
             qDebug("[%d][%s] Fail to context intialization", __LINE__, __func__);
         }
         mIsContextSwitching = false;
+    }
+}
+
+void GLRenderer::loadTexture(string path) {
+    for (size_t i = 0; i < mMaterialMap[mCurrMaterialName].size(); i++) {
+        mModelManager->loadTexture(&mModelList[mMaterialMap[mCurrMaterialName][i]], path);
     }
 }

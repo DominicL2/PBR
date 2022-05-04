@@ -8,6 +8,7 @@ Rectangle {
     property int leftMargin : 25
     property int yMargin : 20
     property int shaderPageIndex : 0
+    property string dirPath : ""
 
     function setComboBox(list) {
         for (var i = 0; i < list.length; i++) {
@@ -78,6 +79,15 @@ Rectangle {
                 }
                 SidePanelMaterialTab_CookTorrance {
                     id : materialTab_cookTorrance
+                    dirPath: materialTab_top.dirPath
+                    onRoughnessPathStrChanged: {
+                        viewModel.loadTexture(roughnessPathStr)
+                    }
+
+                    onMetallicPathStrChanged: {
+                        console.log("onMetallicPathStrChanged")
+                        viewModel.loadTexture(metallicPathStr)
+                    }
                 }
             }
         }

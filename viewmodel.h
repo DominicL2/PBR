@@ -66,10 +66,12 @@ public:
 
     Q_INVOKABLE void setShaderType(int type);
     Q_INVOKABLE void showAxisLine(bool isShow);
+    Q_INVOKABLE void loadTexture(QString path);
 
 signals :
     void sigModelLoadded();
     void sigMaterialChanged();
+    void sigErrorMsg(QString msg);
 
     void swapChanged();
     void logMsgChanged();

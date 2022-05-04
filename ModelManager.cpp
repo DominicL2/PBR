@@ -41,32 +41,32 @@ aiTextureType ModelManager::getTextureTypeUsingFileName(string name)
     for (int i = aiTextureType_DIFFUSE; i < aiTextureType_UNKNOWN; i++) {
         switch (i) {
         case aiTextureType_BASE_COLOR :
-            if (strstr(name.c_str(), "BaseColor") != NULL) {
+            if (strstr(name.c_str(), "BaseColor") != NULL || strstr(name.c_str(), "baseColor") != NULL) {
                 type = aiTextureType_BASE_COLOR;
             } else {}
             break;
         case aiTextureType_NORMALS :
-            if (strstr(name.c_str(), "Normal") != NULL) {
+            if (strstr(name.c_str(), "Normal") != NULL || strstr(name.c_str(), "normal") != NULL) {
                 type = aiTextureType_NORMALS;
             } else {}
             break;
         case aiTextureType_METALNESS :
-            if (strstr(name.c_str(), "Metallic") != NULL) {
+            if (strstr(name.c_str(), "Metallic") != NULL || strstr(name.c_str(), "metallic") != NULL) {
                 type = aiTextureType_METALNESS;
             } else {}
             break;
         case aiTextureType_EMISSIVE :
-            if (strstr(name.c_str(), "Emissive") != NULL) {
+            if (strstr(name.c_str(), "Emissive") != NULL || strstr(name.c_str(), "emissive") != NULL) {
                 type = aiTextureType_EMISSIVE;
             } else {}
             break;
         case aiTextureType_HEIGHT :
-            if (strstr(name.c_str(), "Height") != NULL) {
+            if (strstr(name.c_str(), "Height") != NULL || strstr(name.c_str(), "height") != NULL) {
                 type = aiTextureType_HEIGHT;
             } else {}
             break;
         case aiTextureType_DIFFUSE_ROUGHNESS :
-            if (strstr(name.c_str(), "Roughness") != NULL) {
+            if (strstr(name.c_str(), "Roughness") != NULL || strstr(name.c_str(), "roughness") != NULL) {
                 type = aiTextureType_DIFFUSE_ROUGHNESS;
             } else {}
             break;
@@ -138,10 +138,7 @@ GLuint ModelManager::getTextureId(string path)
 {
     GLuint id           = 0U;
     QImage *srcImg = new QImage();
-    std::replace(path.begin(), path.end(), '\\', '/');
-    path = path.substr((int)path.find("/", 0) + 1, path.length());
-
-    srcImg->load((mDirectoryPath + path).c_str());
+    srcImg->load(path.c_str());
     *srcImg = srcImg->convertToFormat(QImage::Format_RGBA8888);
     qDebug("Texture : %s - %d %d %d", (mDirectoryPath + path).c_str(), srcImg->bitPlaneCount(), srcImg->depth(), srcImg->format());
     glGenTextures(1, &id);
@@ -154,15 +151,18 @@ GLuint ModelManager::getTextureId(string path)
     glBindTexture(GL_TEXTURE_2D, 0);
     delete srcImg;
 
-    mTextureMap[path.c_str()] = id;
+    mTextureMap[path.substr(path.find_last_of("/") + 1, path.length())] = id;
     return id;
 }
 
-void ModelManager::loadTexture(vector<GLuint> *textureId, string path)
+void ModelManager::loadTexture(ModelData *modelData, string path)
 {
-    GLuint texId = getTextureId(path);
-    if (texId > 0) {
-        textureId->push_back(texId);
+    aiTextureType type = getTextureTypeUsingFileName(path);
+
+    if (mTextureMap[path.c_str()] != 0U) {
+        modelData->textures[type].push_back(mTextureMap[path.c_str()]);
+    } else {
+        modelData->textures[type].push_back(getTextureId(path.c_str()));
     }
 }
 
@@ -240,10 +240,14 @@ ModelData ModelManager::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t 
             for (uint32_t i = 0; i < material->GetTextureCount((aiTextureType)type); i++) {
                 aiString path;
                 material->GetTexture((aiTextureType)type, i, &path);
+                qDebug("Path : %s", path.C_Str());
                 if (mTextureMap[path.C_Str()] != 0U) {
                     modelData.textures[(aiTextureType)type].push_back(mTextureMap[path.C_Str()]);
                 } else {
-                    modelData.textures[(aiTextureType)type].push_back(getTextureId(path.C_Str()));
+                    string strPath = path.C_Str();
+                    std::replace(strPath.begin(), strPath.end(), '\\', '/');
+                    strPath = strPath.substr((int)strPath.find("/", 0) + 1, strPath.length());
+                    modelData.textures[(aiTextureType)type].push_back(getTextureId((mDirectoryPath + strPath).c_str()));
                 }
             }
         }

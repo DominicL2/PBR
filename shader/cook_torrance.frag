@@ -53,7 +53,7 @@ vec3 getCookTorranceSpecular(vec3 normal, vec3 light, vec3 view, vec3 roughnessM
 	float cosTheta = dot(normal, light);
 	float D = distributionTrowbridgeReitzGGX(normal, halfVector, roughnessMap.g);
 	float G = geometrySmith(normal, view, light, roughnessMap.g);
-	vec3 F = fresnel(vec3(0.93, 0.93, 0.93), cosTheta, color, metallicMap.b);
+	vec3 F = fresnel(vec3(0.3, 0.3, 0.3), cosTheta, color, metallicMap.b);
 	vec3 DFG = D * F * G;
 
 	float NdotV = max(dot(normal, view), 0.0);

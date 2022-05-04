@@ -111,6 +111,8 @@ public:
     /// Initialize model data
     void init(ModelData* model);
 
+    /// load texture for pbr
+    void loadTexture(ModelData *modelData, string path);
 private :
     string mDirectoryPath;
     unordered_map<string, uint32_t> mTextureMap;
@@ -119,7 +121,6 @@ private :
     /// Load Texture
     QStringList getTextureFilePath(string path);
     GLuint getTextureId(string path);
-    void loadTexture(vector<GLuint> *textureId, string path);
     ModelData parseModel(const aiScene *scene, aiMesh* mesh,  uint32_t meshIndex);
     aiTextureType getTextureTypeUsingFileName(string name);
     string getBasePath(string fullPath);
