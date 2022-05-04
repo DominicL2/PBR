@@ -47,6 +47,7 @@ Rectangle {
                 nameHeight : 20
                 dispWidth: 230
                 dispHeight: 20
+                enableButton : true
                 onPathStrChanged: {
                     commonTab.pathStr = pathStr
                 }

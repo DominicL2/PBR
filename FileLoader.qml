@@ -14,6 +14,8 @@ Row {
     property int nameWidth : 0
     property int nameHeight : 0
     property string name : ""
+    property bool enableButton : false
+    property string disableNotifyMsg : ""
     property bool showNameOnly : false
 
     spacing : 10
@@ -50,56 +52,63 @@ Row {
             textFormat: Text.RichText
         }
     }
-
-    MouseArea {
+    Rectangle {
+        id : fileDialogButtonRect
         width : 20
         height : 20
+        radius : 4
+        visible: true
+        color : enableButton ? gWhite1 : gWhite2
 
-        FileDialog {
-            id: fileDialog
-            title: fileLoader.title
-            folder: fileLoader.folder
-            nameFilters: fileLoader.nameFilters
-
-            onAccepted: {
-                pathStr = fileUrl.toString().replace(/^(file:\/{2})/,"")
-                displayStr = pathStr
-                if (showNameOnly) {
-                    displayStr = displayStr.substring(displayStr.lastIndexOf('/') + 1, displayStr.length)
-                }
-
-                if (displayStr.length > maxStrSize) {
-                    displayStr = displayStr.substring(0, maxStrSize - 3) + "..."
-                }
-                Qt.quit()
-            }
-            onRejected: {
-                Qt.quit()
-            }
+        Image {
+            visible: enableButton
+            anchors.centerIn: parent
+            source : "resource/image/forlder_icon.png"
+            sourceSize.width: parent.width - 5
+            sourceSize.height: parent.height - 5
         }
 
-        Rectangle {
-            id : fileDialogButtonRect
+        MouseArea {
             anchors.fill: parent
-            radius : 4
-            color : gWhite1
-            Image {
-                anchors.centerIn: parent
-                source : "resource/image/forlder_icon.png"
-                sourceSize.width: parent.width - 5
-                sourceSize.height: parent.height - 5
+            FileDialog {
+                id: fileDialog
+                title: fileLoader.title
+                folder: fileLoader.folder
+                nameFilters: fileLoader.nameFilters
+
+                onAccepted: {
+                    pathStr = fileUrl.toString().replace(/^(file:\/{2})/,"")
+                    displayStr = pathStr
+                    if (showNameOnly) {
+                        displayStr = displayStr.substring(displayStr.lastIndexOf('/') + 1, displayStr.length)
+                    }
+
+                    if (displayStr.length > maxStrSize) {
+                        displayStr = displayStr.substring(0, maxStrSize - 3) + "..."
+                    }
+                    Qt.quit()
+                }
+                onRejected: {
+                    Qt.quit()
+                }
             }
-        }
-        onClicked: {
-            fileDialog.open()
-        }
 
-        onPressed: {
-            fileDialogButtonRect.color = gWhite2
-        }
 
-        onReleased: {
-            fileDialogButtonRect.color = gWhite1
+            onClicked: {
+                if (enableButton) {
+                    fileDialog.open()
+                } else {
+                    viewModel.sigErrorMsg(disableNotifyMsg)
+                }
+            }
+
+            onPressed: {
+                fileDialogButtonRect.color = gWhite2
+            }
+
+            onReleased: {
+                fileDialogButtonRect.color = gWhite1
+            }
         }
     }
 }

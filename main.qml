@@ -73,7 +73,6 @@ Item {
             case gShader_Cook_Torrance :
                 break;
             }
-
         }
         onSigMaterialChanged : {
             if (viewModel.loadded) {

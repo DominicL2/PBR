@@ -6,6 +6,7 @@ Rectangle {
     property string dirPath : ""
     property string roughnessPathStr : ""
     property string metallicPathStr : ""
+    property string defaultPath : "file://"
 
     Rectangle {
         x : 0
@@ -17,7 +18,7 @@ Rectangle {
                 id : roguhnessLoader
                 name : "Roughness"
                 title : "Please choose a texture file"
-                folder: "file://" + materialTab.dirPath
+                folder: defaultPath + materialTab.dirPath
                 nameFilters: "PNG files (*.png)"
                 maxStrSize : 37
                 nameWidth : 60
@@ -25,6 +26,8 @@ Rectangle {
                 dispWidth : 190
                 dispHeight : 20
                 showNameOnly : true
+                enableButton : dirPath.length > defaultPath.length ? true : false
+                disableNotifyMsg :"Can not opened Model file!"
                 onPathStrChanged: {
                     roughnessPathStr = pathStr
                 }
@@ -56,6 +59,7 @@ Rectangle {
                 dispWidth: 190
                 dispHeight: 20
                 showNameOnly : true
+                enableButton : dirPath.length > defaultPath.length ? true : false
                 onPathStrChanged: {
                     metallicPathStr = pathStr
                 }
