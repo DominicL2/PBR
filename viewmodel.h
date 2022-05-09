@@ -1,3 +1,12 @@
+/**
+ * @file viewmodel.h
+ *
+ * @brief connect GLRender and QML
+ *
+ * @author DM Lee
+ * Contact: kwoo2007@naver.com
+ *
+ */
 #ifndef VIEWMODEL_H
 #define VIEWMODEL_H
 
@@ -7,6 +16,9 @@
 #include <QVector3D>
 #include "GLRenderer.h"
 
+/**
+ * Implementation of ViewModel for connect gl renderer and gui logic
+ */
 class ViewModel : public QQuickItem
 {
     Q_OBJECT
@@ -41,11 +53,17 @@ public:
     }
 
     /* Invoke method */
-    Q_INVOKABLE void setViewport(QVariant x, QVariant y, QVariant width, QVariant height);
+    Q_INVOKABLE void setViewport(   QVariant x,
+                                    QVariant y,
+                                    QVariant width,
+                                    QVariant height);
+
     Q_INVOKABLE void loadGrpahicsModel(QVariant string);
+
     Q_INVOKABLE QVector3D getViewPos();
     Q_INVOKABLE QVector3D getLightPos();
     Q_INVOKABLE QVector3D getModelRotationPos();
+
     Q_INVOKABLE void setViewPos(QVector3D pos);
     Q_INVOKABLE void setLightPos(QVector3D pos);
     Q_INVOKABLE void setModelRotation(QVector3D pos);
@@ -54,19 +72,20 @@ public:
     Q_INVOKABLE QVector3D getDiffuse();
     Q_INVOKABLE QVector3D getSpecular();
 
-    Q_INVOKABLE void setAmbient(QVector3D pos);
-    Q_INVOKABLE void setDiffuse(QVector3D pos);
-    Q_INVOKABLE void setSpecular(QVector3D pos);
-
-    Q_INVOKABLE qreal getShiness();
-    Q_INVOKABLE void setShiness(qreal pos);
-
     Q_INVOKABLE void setCurrentMaterial(QString name);
     Q_INVOKABLE QStringList getMaterialList();
 
     Q_INVOKABLE void setShaderType(int type);
-    Q_INVOKABLE void showAxisLine(bool isShow);
+
+    Q_INVOKABLE void setAmbient(QVector3D pos);
+    Q_INVOKABLE void setDiffuse(QVector3D pos);
+    Q_INVOKABLE void setSpecular(QVector3D pos);
+    Q_INVOKABLE qreal getShiness();
+    Q_INVOKABLE void setShiness(qreal pos);
+
     Q_INVOKABLE void loadTexture(QString path);
+
+    Q_INVOKABLE void showAxisLine(bool isShow);    
 
 signals :
     void sigModelLoadded();
@@ -85,10 +104,11 @@ private slots :
     void handleWindowChanged(QQuickWindow *quickWindow);
 
 private :
-    qreal mSwap;
-    QString mLogMsg;
-    bool    mIsLoadded;
-    GLRenderer *glRenderer;
+    qreal       mSwap;
+    QString     mLogMsg;
+    bool        mIsLoadded;
+    GLRenderer  *glRenderer;
+
     GLSpace::Rectangle mViewport;
 };
 

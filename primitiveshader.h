@@ -1,3 +1,13 @@
+/**
+ * @file primitiveshader.h
+ *
+ * @brief define shader code for rendering of axis line
+ *
+ * @author DM Lee
+ * Contact: kwoo2007@naver.com
+ *
+ */
+
 #ifndef PRIMITIVESHADER_H
 #define PRIMITIVESHADER_H
 

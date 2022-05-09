@@ -22,7 +22,6 @@ HEADERS += \
     gldefine.h \
     pbrshader.h \
     spacedata.h \
-    debugmacro.h \
     ModelManager.h \
     primitiveshader.h
 

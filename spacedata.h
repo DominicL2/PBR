@@ -1,19 +1,25 @@
+/**
+ * @file spacedata.h
+ *
+ * @brief define space data of GL
+ *
+ * @author DM Lee
+ * Contact: kwoo2007@naver.com
+ *
+ */
 #ifndef SPACEDATA_H
 #define SPACEDATA_H
 
 #include <glm/glm.hpp>
-#include <QDebug>
-/// default distance unit is "cm"
-///
-#define GL_SPACE_DEFUALT_MAX_DISTANCE (10.f)
 
+#define GL_SPACE_DEFUALT_MAX_DISTANCE (10.f)
 #define GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_X (0.0)
 #define GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_Y (0.0)
 #define GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_Z (2.0)
 
 #define GL_SPACE_DEFUALT_VIEW_POINT_POS_X (0)
-#define GL_SPACE_DEFUALT_VIEW_POINT_POS_Y (0.8)
-#define GL_SPACE_DEFUALT_VIEW_POINT_POS_Z (1.5)
+#define GL_SPACE_DEFUALT_VIEW_POINT_POS_Y (0.5)
+#define GL_SPACE_DEFUALT_VIEW_POINT_POS_Z (1.0)
 
 #define GL_SPACE_AXIS_LINE_LENGTH (5.0)
 

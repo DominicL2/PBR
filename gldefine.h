@@ -1,3 +1,12 @@
+/**
+ * @file gldefine.h
+ *
+ * @brief define context property for opengles 2.0
+ *
+ * @author DM Lee
+ * Contact: kwoo2007@naver.com
+ *
+ */
 #ifndef GLDEFINE_H
 #define GLDEFINE_H
 

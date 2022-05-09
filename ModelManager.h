@@ -1,3 +1,12 @@
+/**
+ * @file ModelManager.h
+ *
+ * @brief load graphics model data from path and register data to gpu memory
+ *
+ * @author DM Lee
+ * Contact: kwoo2007@naver.com
+ *
+ */
 #ifndef MODELLOADER_H
 #define MODELLOADER_H
 
@@ -99,6 +108,9 @@ typedef struct ModelData {
     }
 } MODEL_DATA;
 
+/**
+ * Implementation of Model manager for load .obj and .fbx file
+ */
 class ModelManager
 {
 public:
@@ -113,6 +125,7 @@ public:
 
     /// load texture for pbr
     void loadTexture(ModelData *modelData, string path);
+
 private :
     string mDirectoryPath;
     unordered_map<string, uint32_t> mTextureMap;

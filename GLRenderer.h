@@ -1,3 +1,12 @@
+/**
+ * @file GLRenderer.h
+ *
+ * @brief draw 3D graphics model using model manager
+ *
+ * @author DM Lee
+ * Contact: kwoo2007@naver.com
+ *
+ */
 #ifndef MODEL_GLRENDER_H
 #define MODEL_GLRENDER_H
 
@@ -24,6 +33,9 @@ typedef enum {
     NUM_FILE_EXTENSION,
 } FileExtension;
 
+/**
+ * Implementation of a gl renderer for 3D model rendering
+ */
 class GLRenderer : public QObject, protected QOpenGLFunctions
 {
     Q_OBJECT

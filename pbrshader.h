@@ -1,3 +1,12 @@
+/**
+ * @file pbrshader.h
+ *
+ * @brief define shader information
+ *
+ * @author DM Lee
+ * Contact: kwoo2007@naver.com
+ *
+ */
 #ifndef PBRSHADER_H
 #define PBRSHADER_H
 
