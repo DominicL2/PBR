@@ -11,6 +11,10 @@ Rectangle {
     property int yMargin : 25
     property string pathStr : ""    
 
+    function setLightColor(color) {
+        lightColorEditor.setValue(color.x, color.y, color.z)
+    }
+
     function setLightPos(pos) {
         lightPosEditor.setValue(pos.x, pos.y, pos.z)
     }
@@ -50,6 +54,24 @@ Rectangle {
                 enableButton : true
                 onPathStrChanged: {
                     commonTab.pathStr = pathStr
+                }
+            }
+
+            /// Light Color
+            Row {
+                spacing : 15
+                Controller3D {
+                    id : lightColorEditor
+                    title: "Light Color"
+                    type:"Color"
+                }
+
+                CustomButton {
+                    id :lightColorButton
+
+                    onClickedChanged: {
+                        viewModel.setLightColor(lightColorEditor.getValue())
+                    }
                 }
             }
 
@@ -124,7 +146,7 @@ Rectangle {
                 SidePanelCommonTab_LogBox {
                     id : logBox
                     width : commonTab.width - (leftMargin * 2)
-                    height : 244
+                    height : 200
                 }
             }
         }

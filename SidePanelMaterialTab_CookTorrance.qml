@@ -27,7 +27,7 @@ Rectangle {
                 dispHeight : 20
                 showNameOnly : true
                 enableButton : dirPath.length > defaultPath.length ? true : false
-                disableNotifyMsg :"Can not opened Model file!"
+                disableNotifyMsg :"Does not opened model file!"
                 onPathStrChanged: {
                     roughnessPathStr = pathStr
                 }
@@ -45,7 +45,6 @@ Rectangle {
                     source : roughnessPathStr.length > 0 ? "file://" + roughnessPathStr : ""
                 }
             }
-
 
             FileLoader {
                 id : metallicLoader

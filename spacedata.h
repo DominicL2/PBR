@@ -33,6 +33,7 @@ namespace GLSpace {
 
     typedef struct {
         glm::vec3 lightSource;
+        glm::vec3 lightColor;
         glm::vec3 viewPoint;
         GLSpace::SurfaceOfVolume near;
         GLSpace::SurfaceOfVolume far;

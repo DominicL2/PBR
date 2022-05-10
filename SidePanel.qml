@@ -20,10 +20,11 @@ Rectangle {
     border.color: gWhite1
     border.width: 2
 
-    function setDefaultSpaceVal(lightPos, viewPos, modelRotation) {
+    function setDefaultSpaceVal(lightPos, viewPos, modelRotation, lightColor) {
         commonTab.setLightPos(lightPos)
         commonTab.setViewPos(viewPos)
         commonTab.setModelRotation(modelRotation)
+        commonTab.setLightColor(lightColor)
     }
 
     function setMaterialParamForPhong(ambient, diffuse, specular, shiness) {

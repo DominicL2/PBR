@@ -15,7 +15,6 @@
 #include <glm/gtx/transform.hpp>
 #include <vector>
 
-
 typedef enum {
     GLES_SHADER_TYPE_VERTEX = 0,
     GLES_SHADER_TYPE_FRAGMENT,

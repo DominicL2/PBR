@@ -8,7 +8,9 @@
 
 GLRenderer::GLRenderer()
 {
+    /// Intialize GL for Qt method
     initializeOpenGLFunctions();
+    
     mContextCreated = false;
     mType = SHADER_TYPE_PHONG;
     if (createContext() == GL_RENDERER_FAIL) {
@@ -17,11 +19,13 @@ GLRenderer::GLRenderer()
         qDebug("[%s][%s:%d]", __FILE__, __func__, __LINE__);
         mSpaceInfo.fov = 100.f;
     }
+
     mIsContextSwitching = false;
-    mModelLoadded = false;
-    mIsShowOfAxisLine = true;
+    mModelLoadded       = false;
+    mIsShowOfAxisLine   = true;
 
     mSpaceInfo.viewPoint    = glm::vec3(GL_SPACE_DEFUALT_VIEW_POINT_POS_X, GL_SPACE_DEFUALT_VIEW_POINT_POS_Y, GL_SPACE_DEFUALT_VIEW_POINT_POS_Z);
+    mSpaceInfo.lightColor   = glm::vec3(1.0, 1.0, 1.0);
     mSpaceInfo.lightSource  = glm::vec3(GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_X, GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_Y, GL_SPACE_DEFUALT_LIGHT_SOURCE_POS_Z);
     mViewportInfo           = GLSpace::Rectangle(0, 0, 0, 0);
 
@@ -303,6 +307,13 @@ int32_t GLRenderer::registerUniformForPhong()
         return ret;
     }
 
+    uniformId = glGetUniformLocation(mContext.program, "u_lightColor");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
     uniformId = glGetUniformLocation(mContext.program, "ambientW");
     if (uniformId >= 0) {
         mContext.uniform.push_back(uniformId);
@@ -382,6 +393,19 @@ int32_t GLRenderer::registerUniformForCookTorrance()
     }
 
     uniformId = glGetUniformLocation(mContext.program, "u_viewPos");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+    uniformId = glGetUniformLocation(mContext.program, "u_lightColor");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
+
+    uniformId = glGetUniformLocation(mContext.program, "u_ambientW");
     if (uniformId >= 0) {
         mContext.uniform.push_back(uniformId);
     } else {
@@ -644,6 +668,9 @@ void GLRenderer::drawUsingPhong(const ModelData *modelData)
 
     glUniform3f(mContext.uniform[PHONG_SHADER_UNIFORM_LIGHT_POS], mSpaceInfo.lightSource.x, mSpaceInfo.lightSource.y, mSpaceInfo.lightSource.z);
     glUniform3f(mContext.uniform[PHONG_SHADER_UNIFORM_VIEW_POS], mSpaceInfo.viewPoint.x, mSpaceInfo.viewPoint.y, mSpaceInfo.viewPoint.z);
+    glUniform3f(mContext.uniform[PHONG_SHADER_UNIFORM_LIGHT_COLOR], mSpaceInfo.lightColor.x * 1.0,
+                                                                            mSpaceInfo.lightColor.y * 1.0,
+                                                                            mSpaceInfo.lightColor.z * 1.0);
 
     glUniform3f(mContext.uniform[PHONG_SHADER_UNIFORM_AMBIENT],
                 modelData->weight[LIGHT_WEIGHT_TYPE_AMBIENT].r,
@@ -762,11 +789,19 @@ void GLRenderer::drawUsingCookTorrance(const ModelData *modelData)
     mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
     mvMatrix = viewMatrix * modelMatrix;
 
+    glUniform3f(mContext.uniform[COOK_TORRANCE_SHADER_UNIFORM_AMBIENT],
+                modelData->weight[LIGHT_WEIGHT_TYPE_AMBIENT].r,
+                modelData->weight[LIGHT_WEIGHT_TYPE_AMBIENT].g,
+                modelData->weight[LIGHT_WEIGHT_TYPE_AMBIENT].b );
+
     glUniformMatrix4fv(mContext.uniform[COOK_TORRANCE_SHADER_UNIFORM_MVP], 1, GL_FALSE, (const float *)&mvpMatrix[0][0]);
     glUniformMatrix4fv(mContext.uniform[COOK_TORRANCE_SHADER_UNIFORM_MV], 1, GL_FALSE, (const float *)&mvMatrix[0][0]);
 
     glUniform3f(mContext.uniform[COOK_TORRANCE_SHADER_UNIFORM_LIGHT_POS], mSpaceInfo.lightSource.x, mSpaceInfo.lightSource.y, mSpaceInfo.lightSource.z);
     glUniform3f(mContext.uniform[COOK_TORRANCE_SHADER_UNIFORM_VIEW_POS], mSpaceInfo.viewPoint.x, mSpaceInfo.viewPoint.y, mSpaceInfo.viewPoint.z);
+    glUniform3f(mContext.uniform[COOK_TORRANCE_SHADER_UNIFORM_LIGHT_COLOR], mSpaceInfo.lightColor.x * PBR_LIGHT_COLOR_WEIGHT,
+                                                                            mSpaceInfo.lightColor.y * PBR_LIGHT_COLOR_WEIGHT,
+                                                                            mSpaceInfo.lightColor.z * PBR_LIGHT_COLOR_WEIGHT);
 
     glBindBuffer(GL_ARRAY_BUFFER, modelData->vboId[VBO_ID_TYPE_VERTEX]);
     glVertexAttribPointer(mContext.attribute[PHONG_SHADER_ATTR_VERTEX], 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);

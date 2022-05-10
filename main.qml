@@ -60,7 +60,7 @@ Item {
         id : viewModelConnector
         target :  viewModel
         onSigModelLoadded : {
-            sidePannel.setDefaultSpaceVal(viewModel.getLightPos(), viewModel.getViewPos(), viewModel.getModelRotationPos())
+            sidePannel.setDefaultSpaceVal(viewModel.getLightPos(), viewModel.getViewPos(), viewModel.getModelRotationPos(), viewModel.getLightColor())
             sidePannel.setMaterialList(viewModel.getMaterialList())
             sidePannel.showAxisCheckBox()
             switch (sidePannel.getShaderType()) {

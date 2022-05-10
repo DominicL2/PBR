@@ -59,6 +59,16 @@ void ViewModel::loadGrpahicsModel(QVariant string)
     }
 }
 
+QVector3D ViewModel::getLightColor()
+{
+    glm::vec3 color = glRenderer->getLightColor();
+    QVector3D ret;
+    ret.setX(color.x);
+    ret.setY(color.y);
+    ret.setZ(color.z);
+    return ret;
+}
+
 QVector3D ViewModel::getViewPos()
 {
     glm::vec3 pos = glRenderer->getViewPos();
@@ -118,6 +128,12 @@ QVector3D ViewModel::getSpecular()
     ret.setZ(pos.z);
     return ret;
 }
+
+void ViewModel::setLightColor(QVector3D color)
+{
+    glRenderer->setLightColor(glm::vec3(color.x(), color.y(), color.z()));
+}
+
 
 void ViewModel::setViewPos(QVector3D pos)
 {

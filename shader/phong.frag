@@ -8,7 +8,8 @@ uniform vec3 ambientW;
 uniform vec3 diffuseW;                           
 uniform vec3 specularW;                          
 uniform vec3 defaultColor;                       
-uniform float shiness;                           
+uniform float shiness;       
+uniform vec3 u_lightColor;                    
 uniform sampler2D texAlbedo;                     
 uniform sampler2D texNormalMap;                  
 vec3 calcPhongModel(vec3 color, vec3 normal)     
@@ -17,8 +18,8 @@ vec3 calcPhongModel(vec3 color, vec3 normal)
 	vec3 light = normalize(v_lightPos - v_surface);                                
 	vec3 view = normalize(v_viewPos - v_surface);                                  
 	vec3 diffuse = diffuseW * color * max(dot(normal, light), 0.0);                
-	vec3 reflection = reflect(-light, normal);                                     
-	vec3 specular = specularW * pow(max(dot(reflection, view), 0.0), shiness);     
+	vec3 reflection = reflect(-light, normal);    
+	vec3 specular = specularW * pow(max(dot(reflection, view), 0.0), shiness) * u_lightColor;     
 	return (ambient + diffuse + specular);                                         
 }                                                                                
 void main()                                                                      

@@ -60,10 +60,12 @@ public:
 
     Q_INVOKABLE void loadGrpahicsModel(QVariant string);
 
+    Q_INVOKABLE QVector3D getLightColor();
     Q_INVOKABLE QVector3D getViewPos();
     Q_INVOKABLE QVector3D getLightPos();
     Q_INVOKABLE QVector3D getModelRotationPos();
 
+    Q_INVOKABLE void setLightColor(QVector3D color);
     Q_INVOKABLE void setViewPos(QVector3D pos);
     Q_INVOKABLE void setLightPos(QVector3D pos);
     Q_INVOKABLE void setModelRotation(QVector3D pos);

@@ -59,6 +59,10 @@ public:
         m_window = window;
     }
 
+    inline glm::vec3 getLightColor() {
+        return mSpaceInfo.lightColor;
+    }
+
     inline glm::vec3 getViewPos() {
         return mSpaceInfo.viewPoint;
     }
@@ -70,6 +74,9 @@ public:
         return mModelRatation;
     }
 
+    inline void setLightColor(glm::vec3 color) {
+        mSpaceInfo.lightColor = color;
+    }
     inline void setViewPos(glm::vec3 pos) {
         mSpaceInfo.viewPoint = pos;
     }
