@@ -4,14 +4,17 @@ varying vec3 v_lightPos;
 varying mat3 v_TBN;
 varying vec3 v_surface;
 
+uniform vec3 u_ambientW;
+uniform vec3 u_lightColor;  
+
 uniform sampler2D texAlbedo;
 uniform sampler2D texNormalMap;
 uniform sampler2D texRoughnessMap;
 uniform sampler2D texMetallicMap;
 
-float getRambertianDiffuse(vec3 normal, vec3 light)
+vec3 getRambertianDiffuse(vec3 color)
 {
-	return max(dot(normal, light), 0.0);
+	return color / 3.141592;
 }
 
 float distributionTrowbridgeReitzGGX(vec3 normal, vec3 halfVector, float roughness) 
@@ -48,8 +51,10 @@ void main()
 {
 	vec4 baseColor		= texture2D(texAlbedo, v_texcoord);
 	vec3 normalMap		= texture2D(texNormalMap, v_texcoord).rgb;
-	vec3 roughnessMap	= texture2D(texRoughnessMap, v_texcoord).rgb;
-	vec3 metallicMap	= texture2D(texMetallicMap, v_texcoord).rgb;
+	float roughness		= texture2D(texRoughnessMap, v_texcoord).r;
+	float metallic		= texture2D(texMetallicMap, v_texcoord).r;
+	vec3 lightColor		= vec3(23.47, 21.31, 20.79);
+
 
 	/// Change space form tangent to world
 	normalMap = normalMap * 2.0 - 1.0;
@@ -60,17 +65,23 @@ void main()
 	vec3 halfVector = normalize(light + view);
 	float NdotV		= max(dot(normalMap, view), 0.0);
 	float NdotL		= max(dot(normalMap, light), 0.0); /// Cosine Theta
+	float dist		= length(v_lightPos - v_surface);
 
-	float 	D = distributionTrowbridgeReitzGGX(normalMap, halfVector, roughnessMap.g);
-	float 	G = geometrySmith(NdotV, NdotL, roughnessMap.g);
-	vec3	F = fresnel(vec3(0.3, 0.3, 0.3), NdotL, baseColor.xyz);
+	vec3 illuminance = u_lightColor * (1.0 / (dist * dist));
+	vec3 F0 = vec3(0.04);
+	F0 = mix(F0, baseColor.xyz, metallic);
 
-	float diffuse = getRambertianDiffuse(normalMap, light);
-	vec3 specular = (D * F * G) / (3.141592 * NdotL * NdotV);
+	float 	D = distributionTrowbridgeReitzGGX(normalMap, halfVector, roughness);
+	float 	G = geometrySmith(NdotV, NdotL, roughness);
+	vec3	F = fresnel(F0, NdotL, baseColor.xyz);
+
+	vec3 diffuse = getRambertianDiffuse(baseColor.xyz);
+	vec3 specular = (D * F * G) / max((3.141592 * NdotL * NdotV), 0.001);
 	
 	vec3 Ks = F;
-	vec3 Kd = 1.0 - Ks;
-	Kd *= 1.0 - metallicMap.b;
+	vec3 Kd = vec3(1.0) - Ks;
+	Kd *= 1.0 - metallic;
 
-	gl_FragColor = vec4(baseColor.xyz * ((Kd * diffuse) + (Ks * specular)), 1.0);
+	vec3 reflection = ((Kd * diffuse) + specular) * illuminance * NdotL;
+	gl_FragColor = vec4(vec3(baseColor.xyz * u_ambientW) + reflection, 1.0);
 }
