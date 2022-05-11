@@ -85,9 +85,14 @@ Rectangle {
 
                 CustomButton {
                     id :lightPosButton
-
+                    property bool rotationFlag : false
                     onClickedChanged: {
                         viewModel.setLightPos(lightPosEditor.getValue())
+                    }
+
+                    onDoubleClickedChanged: {
+                        rotationFlag = !rotationFlag
+                        viewModel.rotateLightSource(rotationFlag)
                     }
                 }
             }

@@ -11,6 +11,7 @@ Rectangle {
     radius : 4
 
     property bool clicked : false
+    property bool doubleClicked : false
     property string buttonName : "Apply"
 
     function setText(text) {
@@ -43,6 +44,10 @@ Rectangle {
 
         onClicked: {
             parent.clicked = !parent.clicked;
+        }
+
+        onDoubleClicked: {
+            parent.doubleClicked = !parent.doubleClicked;
         }
     }
 }
