@@ -15,6 +15,8 @@
 #include <glm/gtx/transform.hpp>
 #include <vector>
 
+#define GL_PHY (3.141592)
+
 typedef enum {
     GLES_SHADER_TYPE_VERTEX = 0,
     GLES_SHADER_TYPE_FRAGMENT,

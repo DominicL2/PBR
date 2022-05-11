@@ -205,6 +205,7 @@ int32_t GLRenderer::load(string path)
     mScale.x = mLengthAll.x / minLength;
     mScale.y = mLengthAll.y / minLength;
     mScale.z = mLengthAll.z / minLength;
+
     emit sigMeshInfo(log.str());
     return ret;
 }
@@ -273,6 +274,22 @@ int32_t GLRenderer::registerAttribute(SHADER_TYPE type)
 
     qDebug("[%s] : %s", __func__, ret == GL_RENDERER_SUCCESS ? "true" : "false");
     return ret;
+}
+
+void GLRenderer::rotateLightSourceThread(bool *isRunning, glm::vec3  *inputPos, float stepAngle)
+{
+    glm::vec3 rotatePos = *inputPos;
+    float radius = sqrt(abs(rotatePos.x) + abs(rotatePos.z));
+    float currAngle = 180.f + (atan2(rotatePos.z, rotatePos.x) * 180.f / GL_PHY);
+
+    while (*isRunning) {
+        currAngle = currAngle + stepAngle;
+        if (currAngle > 360) {
+            currAngle = 0;
+        }
+        *inputPos = glm::vec3(cos(currAngle * (GL_PHY / 180.f)) * radius, rotatePos.y, sin(currAngle* (GL_PHY / 180.f)) * radius);
+        QThread::msleep(100);
+    }
 }
 
 int32_t GLRenderer::registerUniformForPhong()
@@ -1019,5 +1036,16 @@ void GLRenderer::setShdaerType(SHADER_TYPE type)
 void GLRenderer::loadTexture(string path) {
     for (size_t i = 0; i < mMaterialMap[mCurrMaterialName].size(); i++) {
         mModelManager->loadTexture(&mModelList[mMaterialMap[mCurrMaterialName][i]], path);
+    }
+}
+
+void GLRenderer::rotateLightSource(bool isRun)
+{
+    mIsRotationRunning = isRun;
+    if (mIsRotationRunning) {
+        mRotatationThr = std::thread(rotateLightSourceThread, &mIsRotationRunning, &mSpaceInfo.lightSource, 2.f);
+        mRotatationThr.detach();
+    } else {
+        /// Update Light pos
     }
 }

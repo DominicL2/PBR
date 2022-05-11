@@ -212,3 +212,9 @@ void ViewModel::loadTexture(QString path)
 {
      glRenderer->loadTexture(path.toStdString());
 }
+
+
+void ViewModel::rotateLightSource(QVariant isRun)
+{
+    glRenderer->rotateLightSource(isRun.toBool());
+}

@@ -87,7 +87,9 @@ public:
 
     Q_INVOKABLE void loadTexture(QString path);
 
-    Q_INVOKABLE void showAxisLine(bool isShow);    
+    Q_INVOKABLE void showAxisLine(bool isShow);
+
+    Q_INVOKABLE void rotateLightSource(QVariant isRun);
 
 signals :
     void sigModelLoadded();

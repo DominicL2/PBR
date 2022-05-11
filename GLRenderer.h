@@ -16,6 +16,8 @@
 #include <QSize>
 #include <vector>
 #include <map>
+#include <thread>
+#include <QThread>
 #include "ModelManager.h"
 #include "gldefine.h"
 #include "pbrshader.h"
@@ -113,6 +115,8 @@ public:
        mIsShowOfAxisLine = isShow;
     }
 
+    void rotateLightSource(bool isRun);
+
 signals:
     void sigMeshInfo(string info);
 
@@ -120,6 +124,8 @@ public slots:
     void paint();
 
 private :
+
+    static void rotateLightSourceThread(bool *isRunning, glm::vec3  *inputPos, float stepAngle);
     FileExtension getFileExtension(string path);
     string loadShaderFile(string path);
     GLuint registerShader(const string text, uint32_t type);
@@ -151,7 +157,8 @@ private :
     glm::vec3           mScale;
     QQuickWindow        *m_window;
     FileExtension       mModelExtension;
-
+    std::thread         mRotatationThr;
+    bool                mIsRotationRunning;
     GLSpace::Line               mAxisLine[3];
     bool                        mIsShowOfAxisLine;
     map<string, vector<int>>    mMaterialMap;
