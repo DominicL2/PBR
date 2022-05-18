@@ -85,8 +85,11 @@ Rectangle {
                     }
 
                     onMetallicPathStrChanged: {
-                        console.log("onMetallicPathStrChanged")
                         viewModel.loadTexture(metallicPathStr)
+                    }
+
+                    onEmssivePathStrChanged: {
+                        viewModel.loadTexture(emssivePathStr)
                     }
                 }
             }
