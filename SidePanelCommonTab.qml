@@ -8,7 +8,7 @@ Rectangle {
     color : "transparent";
 
     property int leftMargin : 25
-    property int yMargin : 25
+    property int yMargin : 20
     property string pathStr : ""    
 
     function setLightColor(color) {
@@ -154,7 +154,7 @@ Rectangle {
                 SidePanelCommonTab_LogBox {
                     id : logBox
                     width : commonTab.width - (leftMargin * 2)
-                    height : 200
+                    height : 155
                 }
             }
         }
