@@ -140,7 +140,7 @@ GLuint ModelManager::getTextureId(string path)
     QImage *srcImg = new QImage();
     srcImg->load(path.c_str());
     *srcImg = srcImg->convertToFormat(QImage::Format_RGBA8888);
-    qDebug("Texture : %s - %d %d %d", (mDirectoryPath + path).c_str(), srcImg->bitPlaneCount(), srcImg->depth(), srcImg->format());
+    qDebug("Texture : %s - %d %d %d", path.c_str(), srcImg->bitPlaneCount(), srcImg->depth(), srcImg->format());
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, srcImg->width(), srcImg->height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, srcImg->bits());
@@ -240,13 +240,12 @@ ModelData ModelManager::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t 
             for (uint32_t i = 0; i < material->GetTextureCount((aiTextureType)type); i++) {
                 aiString path;
                 material->GetTexture((aiTextureType)type, i, &path);
-                qDebug("Path : %s", path.C_Str());
+                qDebug("Dir:%s || Path:%s", mDirectoryPath.c_str(), path.C_Str());
                 if (mTextureMap[path.C_Str()] != 0U) {
                     modelData.textures[(aiTextureType)type].push_back(mTextureMap[path.C_Str()]);
                 } else {
                     string strPath = path.C_Str();
                     std::replace(strPath.begin(), strPath.end(), '\\', '/');
-                    strPath = strPath.substr((int)strPath.find("/", 0) + 1, strPath.length());
                     modelData.textures[(aiTextureType)type].push_back(getTextureId((mDirectoryPath + strPath).c_str()));
                 }
             }
