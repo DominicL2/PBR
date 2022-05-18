@@ -17,6 +17,21 @@ vec3 getRambertianDiffuse(vec3 color)
 	return color / 3.141592;
 }
 
+vec3 getOrenNayarDiffuse(vec3 color, vec3 normal, vec3 view, vec3 light, float roughness) 
+{
+	float roguness2 = roughness * roughness;
+	float NdotL = max(dot(normal, light), 0.0);
+	float NdotV = max(dot(normal, view), 0.0);
+	vec3 lambertian = color / 3.141592;
+	float A = 1.0 - (roguness2 / (roguness2 + 0.33)) * 0.5;
+	float B = 0.45 * roguness2 / (roguness2 + 0.09);
+	float alpha = max(acos(NdotL), acos(NdotV));
+	float beta = min(acos(NdotL), acos(NdotV));
+	float gamma = max(0.0, dot(view - normal * NdotV, light - normal * NdotL));
+
+	return lambertian * (A + B * gamma * sin(alpha) * tan(beta));
+}
+
 float distributionTrowbridgeReitzGGX(vec3 normal, vec3 halfVector, float roughness) 
 {
 	float alpha = roughness * roughness;
@@ -75,7 +90,7 @@ void main()
 	float 	G = geometrySmith(NdotV, NdotL, roughness);
 	vec3	F = fresnel(F0, NdotL, baseColor.xyz);
 
-	vec3 diffuse = getRambertianDiffuse(baseColor.xyz);
+	vec3 diffuse = getOrenNayarDiffuse(baseColor.xyz, normalMap, view, light, roughness); //getRambertianDiffuse(baseColor.xyz);
 	vec3 specular = (D * F * G) / max((3.141592 * NdotL * NdotV), 0.001);
 	
 	vec3 Ks = F;
