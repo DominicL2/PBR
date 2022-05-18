@@ -11,6 +11,7 @@ uniform sampler2D texAlbedo;
 uniform sampler2D texNormalMap;
 uniform sampler2D texRoughnessMap;
 uniform sampler2D texMetallicMap;
+uniform sampler2D texEmissiveMap;
 
 vec3 getRambertianDiffuse(vec3 color)
 {
@@ -69,7 +70,7 @@ void main()
 	float roughness		= texture2D(texRoughnessMap, v_texcoord).r;
 	float metallic		= texture2D(texMetallicMap, v_texcoord).r;
 	vec3 lightColor		= vec3(23.47, 21.31, 20.79);
-
+	vec4 emissiveMap	= texture2D(texEmissiveMap, v_texcoord);
 
 	/// Change space form tangent to world
 	normalMap = normalMap * 2.0 - 1.0;
@@ -98,5 +99,5 @@ void main()
 	Kd *= 1.0 - metallic;
 
 	vec3 reflection = ((Kd * diffuse) + specular) * illuminance * NdotL;
-	gl_FragColor = vec4(vec3(baseColor.xyz * u_ambientW) + reflection, 1.0);
+	gl_FragColor = vec4(vec3(baseColor.xyz * u_ambientW) + reflection, 1.0) + emissiveMap;
 }
