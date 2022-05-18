@@ -280,8 +280,7 @@ void GLRenderer::rotateLightSourceThread(bool *isRunning, glm::vec3  *inputPos, 
 {
     glm::vec3 rotatePos = *inputPos;
     float radius = sqrt(abs(rotatePos.x) + abs(rotatePos.z));
-    float currAngle = 180.f + (atan2(rotatePos.z, rotatePos.x) * 180.f / GL_PHY);
-
+    float currAngle = atan2(rotatePos.z, rotatePos.x) * 180.f / GL_PHY;
     while (*isRunning) {
         currAngle = currAngle + stepAngle;
         if (currAngle > 360) {
@@ -1045,7 +1044,5 @@ void GLRenderer::rotateLightSource(bool isRun)
     if (mIsRotationRunning) {
         mRotatationThr = std::thread(rotateLightSourceThread, &mIsRotationRunning, &mSpaceInfo.lightSource, 2.f);
         mRotatationThr.detach();
-    } else {
-        /// Update Light pos
     }
 }
