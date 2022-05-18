@@ -81,18 +81,21 @@ Rectangle {
                 Controller3D {
                     id : lightPosEditor
                     title: "Light Position"
+                    MouseArea {
+                        id : lightPosMouseArea
+                        anchors.fill: parent
+                        property bool rotationFlag : false
+                        onClicked: {
+                            rotationFlag = !rotationFlag
+                            viewModel.rotateLightSource(rotationFlag)
+                        }
+                    }
                 }
 
                 CustomButton {
                     id :lightPosButton
-                    property bool rotationFlag : false
                     onClickedChanged: {
                         viewModel.setLightPos(lightPosEditor.getValue())
-                    }
-
-                    onDoubleClickedChanged: {
-                        rotationFlag = !rotationFlag
-                        viewModel.rotateLightSource(rotationFlag)
                     }
                 }
             }

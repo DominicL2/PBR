@@ -1,8 +1,12 @@
 import QtQuick 2.0
 
-Column {
+Rectangle {
     id : controller3D
-    spacing : 10
+    x : 0
+    y : 0
+    width: 196
+    height : 60
+    color : "transparent"
     property string title: ""
     property string type: "vector"
     function getValue() {
@@ -15,33 +19,39 @@ Column {
         axisZ.setText(_z)
     }
 
-    Rectangle {
-        width : 150
-        height : 20
-        color: "transparent"
-        Text {
-            anchors.fill: parent
-            verticalAlignment: Text.AlignVCenter
-            text: title
-            font.pixelSize: 16
-            color : gBlack1
-            font.family: sfPro.name
-            font.bold: true
+    Column {
+    spacing : 10
+        Rectangle {
+            x : 0
+            y : 0
+            width : 150
+            height : 20
+            color: "transparent"
+
+            Text {
+                anchors.fill: parent
+                verticalAlignment: Text.AlignVCenter
+                text: title
+                font.pixelSize: 16
+                color : gBlack1
+                font.family: sfPro.name
+                font.bold: true
+            }
         }
-    }
-    Row {
-        spacing : 20
-        Editor3D {
-            id : axisX
-            name : controller3D.type == "vector" ? "x" : "r"
-        }
-        Editor3D {
-            id : axisY
-            name : controller3D.type == "vector" ? "y" : "g"
-        }
-        Editor3D {
-            id : axisZ
-            name : controller3D.type == "vector" ? "z" : "b"
+        Row {
+            spacing : 20
+            Editor3D {
+                id : axisX
+                name : controller3D.type == "vector" ? "x" : "r"
+            }
+            Editor3D {
+                id : axisY
+                name : controller3D.type == "vector" ? "y" : "g"
+            }
+            Editor3D {
+                id : axisZ
+                name : controller3D.type == "vector" ? "z" : "b"
+            }
         }
     }
 }
