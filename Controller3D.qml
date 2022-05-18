@@ -9,6 +9,7 @@ Rectangle {
     color : "transparent"
     property string title: ""
     property string type: "vector"
+    property bool clickText : false
     function getValue() {
         return Qt.vector3d(parseFloat(axisX.getText()), parseFloat(axisY.getText()), parseFloat(axisZ.getText()));
     }
@@ -36,6 +37,13 @@ Rectangle {
                 color : gBlack1
                 font.family: sfPro.name
                 font.bold: true
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    clickText = !clickText
+                }
             }
         }
         Row {

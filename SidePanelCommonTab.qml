@@ -81,13 +81,13 @@ Rectangle {
                 Controller3D {
                     id : lightPosEditor
                     title: "Light Position"
-                    MouseArea {
-                        id : lightPosMouseArea
-                        anchors.fill: parent
-                        property bool rotationFlag : false
-                        onClicked: {
-                            rotationFlag = !rotationFlag
-                            viewModel.rotateLightSource(rotationFlag)
+                    property bool rotationFlag : false
+                    onClickTextChanged: {
+                        rotationFlag = !rotationFlag
+                        viewModel.rotateLightSource(rotationFlag)
+                        if (!rotationFlag) {
+                            var pos = viewModel.getLightPos()
+                            setValue(pos.x, pos.y, pos.z)
                         }
                     }
                 }
