@@ -4,7 +4,6 @@
 #include <string>
 #include <iostream>
 #include <QPixmap>
-#include "debugmacro.h"
 
 ModelManager::ModelManager()
 {
@@ -229,12 +228,11 @@ ModelData ModelManager::parseModel(const aiScene *scene, aiMesh* mesh, uint32_t 
         material->Get(AI_MATKEY_COLOR_DIFFUSE, modelData.weight[LIGHT_WEIGHT_TYPE_DIFFUSE]);
         material->Get(AI_MATKEY_COLOR_SPECULAR, modelData.weight[LIGHT_WEIGHT_TYPE_SPECULAR]);
 
-        float shiness = 0.0;
-        if (material->Get(AI_MATKEY_SHININESS, shiness) == aiReturn_SUCCESS) {
-            modelData.parameter.push_back(shiness);
-            modelData.textures.clear();
-        }
+        float shiness = 5.0;
+        material->Get(AI_MATKEY_SHININESS, shiness);
+        modelData.parameter.push_back(shiness);
 
+         modelData.textures.clear();
         for (int type = aiTextureType_DIFFUSE; type < aiTextureType_UNKNOWN; type++) {
             modelData.textures[(aiTextureType)type].clear();
             for (uint32_t i = 0; i < material->GetTextureCount((aiTextureType)type); i++) {
