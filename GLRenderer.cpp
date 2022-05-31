@@ -1,5 +1,4 @@
 #include "GLRenderer.h"
-#include "debugmacro.h"
 #include "primitiveshader.h"
 #include <iostream>
 #include <fstream>
@@ -183,6 +182,8 @@ int32_t GLRenderer::load(string path)
     log << "[Info] ToTal Mesh : " << mModelList.size() << endl;
 
     for (size_t i = 0; i < mModelList.size(); i++) {
+        qDebug("[%s] Min : %f %f %f", mModelList[i].materialName.c_str(), mModelList[i].size.min.x, mModelList[i].size.min.y, mModelList[i].size.min.z);
+        qDebug("[%s] Max : %f %f %f", mModelList[i].materialName.c_str(), mModelList[i].size.max.x, mModelList[i].size.max.y, mModelList[i].size.max.z);
         mMaterialMap[mModelList[i].materialName].push_back(i);
         mLengthAll.x = mModelList[i].size.length.x > mLengthAll.x ? mModelList[i].size.length.x :  mLengthAll.x;
         mLengthAll.y = mModelList[i].size.length.y > mLengthAll.y ? mModelList[i].size.length.y :  mLengthAll.y;
@@ -935,7 +936,7 @@ void GLRenderer::paint()
 {
     if (mModelLoadded  && isLoadded() && !mIsContextSwitching) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearColor(0.085f, 0.095f, 0.085f, 0.f);
+        glClearColor(0.0823f, 0.09f, 0.129f, 0.f);
 
         if (mIsShowOfAxisLine) {
             drawAxis();
