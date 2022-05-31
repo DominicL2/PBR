@@ -456,6 +456,13 @@ int32_t GLRenderer::registerUniformForCookTorrance()
     } else {
         return ret;
     }
+
+    uniformId = glGetUniformLocation(mContext.program, "texEmissiveMap");
+    if (uniformId >= 0) {
+        mContext.uniform.push_back(uniformId);
+    } else {
+        return ret;
+    }
     ret = GL_RENDERER_SUCCESS;
     return ret;
 }
@@ -864,7 +871,7 @@ void GLRenderer::drawUsingCookTorrance(const ModelData *modelData)
         }
     }
 
-    auto roughnessMap = modelData->textures.find(mModelExtension == FILE_EXTENSION_OBJ ? aiTextureType_SHININESS : aiTextureType_DIFFUSE_ROUGHNESS);
+    auto roughnessMap = modelData->textures.find(aiTextureType_DIFFUSE_ROUGHNESS);
     if (roughnessMap->second.size() > 0U) {
         glUniform1i(mContext.uniform[COOK_TORRANCE_SHADER_UNIFORM_TEXTURE_ROUGHNESS_MAP], 2);
         for (size_t i = 0; i < roughnessMap->second.size(); i++) {
@@ -874,12 +881,22 @@ void GLRenderer::drawUsingCookTorrance(const ModelData *modelData)
         }
     }
 
-    auto metallicMap = modelData->textures.find(mModelExtension == FILE_EXTENSION_OBJ ? aiTextureType_SHININESS : aiTextureType_METALNESS);
+    auto metallicMap = modelData->textures.find(aiTextureType_METALNESS);
     if (metallicMap->second.size() > 0U) {
         glUniform1i(mContext.uniform[COOK_TORRANCE_SHADER_UNIFORM_TEXTURE_METALLIC_MAP], 3);
         for (size_t i = 0; i < metallicMap->second.size(); i++) {
             glActiveTexture(GL_TEXTURE0 + textureIndex);
             glBindTexture(GL_TEXTURE_2D, metallicMap->second[i]);
+            textureIndex++;
+        }
+    }
+
+    auto emssiveMap = modelData->textures.find(aiTextureType_EMISSIVE);
+    if (emssiveMap->second.size() > 0U) {
+        glUniform1i(mContext.uniform[COOK_TORRANCE_SHADER_UNIFORM_TEXTURE_EMISSIVE_MAP], 4);
+        for (size_t i = 0; i < emssiveMap->second.size(); i++) {
+            glActiveTexture(GL_TEXTURE0 + textureIndex);
+            glBindTexture(GL_TEXTURE_2D, emssiveMap->second[i]);
             textureIndex++;
         }
     }
